@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mihal Gurevich — Motion & 3D Designer Portfolio</title>
+  <meta name="description" content="Portfolio of Mihal Gurevich, Bezalel graduate specializing in 3D animation, motion graphics, branding, typography, and art direction.">
+  
+  <!-- Typography is Helvetica, which is on the system: no webfont to fetch,
+       and no flash of a fallback face before it swaps in. -->
+  <link rel="stylesheet" href="style.css?v=20261006_d">
+</head>
+<body class="dark-theme">
+
+  <!-- RISO GRAIN. Two stipple layers over the whole opening screen, both
+       procedural: turbulence thresholded hard by the alpha row of a colour
+       matrix, so the noise comes out as discrete specks rather than a smooth
+       fog. One acid, screened, which is the ink catching; one black,
+       multiplied at a different frequency, which is the burn. -->
+  <svg class="riso-grain" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <filter id="riso-acid" x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency="1.15" numOctaves="2"
+                      stitchTiles="stitch" seed="7" result="n"/>
+        <feColorMatrix in="n" type="matrix"
+          values="0 0 0 0 0.863
+                  0 0 0 0 0.988
+                  0 0 0 0 0.157
+                  2.6 0 0 0 -1.35"/>
+      </filter>
+      <!-- The project emblems are printed, not plotted: the edge is eaten by
+           coarse noise and the fill is pitted by fine noise, so the mark
+           reads as something run off badly rather than drawn by a machine.
+           scale stays low — past about 3 the small motifs stop being
+           readable and turn to confetti. -->
+      <filter id="glyph-grunge" x="-30%" y="-30%" width="160%" height="160%"
+              color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.09" numOctaves="4"
+                      seed="11" result="warp"/>
+        <feDisplacementMap in="SourceGraphic" in2="warp" scale="2.4"
+                           xChannelSelector="R" yChannelSelector="G" result="rough"/>
+        <feTurbulence type="fractalNoise" baseFrequency="0.42" numOctaves="3"
+                      seed="4" result="grit"/>
+        <!-- a hard threshold, so the pitting is scattered specks rather than
+             an even wash of half-transparency over the whole shape -->
+        <feColorMatrix in="grit" type="matrix"
+          values="0 0 0 0 0
+                  0 0 0 0 0
+                  0 0 0 0 0
+                  0 0 0 -30 21.3" result="holes"/>
+        <feComposite in="rough" in2="holes" operator="in"/>
+      </filter>
+      <filter id="riso-burn" x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.95" numOctaves="3"
+                      stitchTiles="stitch" seed="19" result="n"/>
+        <feColorMatrix in="n" type="matrix"
+          values="0 0 0 0 0
+                  0 0 0 0 0
+                  0 0 0 0 0
+                  2.2 0 0 0 -1.15"/>
+      </filter>
+    </defs>
+    <rect class="riso-layer riso-layer-acid" width="100%" height="100%" filter="url(#riso-acid)"/>
+    <rect class="riso-layer riso-layer-burn" width="100%" height="100%" filter="url(#riso-burn)"/>
+    <rect class="riso-layer riso-layer-burn2" width="100%" height="100%" filter="url(#riso-acid)"/>
+  </svg>
+
+  <!-- CONTINUOUS POSTER FRAME: PRINT REGISTRATION & CROP MARKS -->
+  <div class="poster-crop-mark top-left" aria-hidden="true">┌</div>
+  <div class="poster-crop-mark top-right" aria-hidden="true">┐</div>
+  <div class="poster-crop-mark bottom-left" aria-hidden="true">└</div>
+  <div class="poster-crop-mark bottom-right" aria-hidden="true">┘</div>
+
+  <!-- CONTINUOUS POSTER MASTHEAD & MARGIN SPECIFICATION STRIP -->
+  <header class="poster-masthead" id="top-bar">
+    <div class="poster-meta-strip-top">
+      <div class="meta-strip-right">
+        <button class="poster-canvas-toggle-btn" id="canvas-theme-toggle" title="Toggle Canvas: Dark Ink / Warm Newsprint Paper">
+          <span class="toggle-icon">◑</span> <span id="canvas-toggle-text">LIGHT CANVAS</span>
+        </button>
+        <span class="reg-crosshair">+</span>
+      </div>
+    </div>
+
+    <!-- CURATED POSTER TYPOGRAPHIC GRID (Directly from Festival MV & Bio-Map References) -->
+    <div class="poster-hero-grid-board">
+      <!-- ROW 1: CENTERED ANIMATION + NAME BELOW -->
+      <div class="poster-hero-top-row">
+        <!-- CENTER STAGE: AMORPHOUS MORPHING VECTOR COMPOSITION (Festival MV & Bio-Map High-Contrast Vector Art) -->
+        <div class="hero-animation-centerpiece" id="poster-hero-graphic-wrap" title="Amorphous Morphing Vector Constellation — Click to morph" role="button" tabindex="0" aria-label="Amorphous morphing vector graphic">
+          <svg class="poster-graphic-starburst" id="amorphous-hero-svg" viewBox="0 0 380 200" preserveAspectRatio="xMidYMid slice" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <!-- DRY-MARKER GRAIN: speckle tile used as a luminance mask so
+                   ink edges erode like a brush instead of reading as clean vector. -->
+              <pattern id="ink-grain-tile" width="16" height="16" patternUnits="userSpaceOnUse">
+                <rect x="0" y="0" width="16" height="16" fill="#ffffff"/>
+                <polygon points="4.3,9.2 4.12,9.54 3.65,9.83 3.43,9.51 3.39,9.01 3.46,8.71 3.7,8.46 4.5,8.65" fill="#d6d6d6"/>
+                <polygon points="9.88,4.6 8.91,5.38 8.24,5.42 7.93,4.35 8.99,4.05" fill="#c9c9c9"/>
+                <polygon points="6.07,4.65 5.89,4.89 5.66,4.91 4.78,4.9 5.49,4.47 5.7,4.15 5.92,4.34" fill="#c9c9c9"/>
+                <polygon points="13.55,15.06 12.88,15.65 12.2,15.87 11.77,15.27 12.32,14.7 12.96,14.57" fill="#d6d6d6"/>
+                <polygon points="1.46,7.28 1.26,7.81 0.5,8.46 0.28,7.87 0.28,7.58 0.13,6.97 0.57,6.81 1.23,6.99" fill="#e2e2e2"/>
+                <polygon points="3.68,7.85 3.23,8.32 2.57,8.59 2.21,8.24 2.15,7.29 2.88,7.48 3.39,7.2" fill="#c9c9c9"/>
+                <polygon points="2.67,5.48 2.45,6.28 1.99,5.77 1.59,5.35 1.96,5.18 2.85,4.69" fill="#e2e2e2"/>
+                <polygon points="2.46,3.75 2.03,4.19 1.36,4.13 1.34,3.57 2.1,3.49" fill="#c9c9c9"/>
+                <polygon points="7.82,1.47 7.41,1.94 7.09,2.12 6.75,1.58 7.01,1.04 7.81,0.93" fill="#d6d6d6"/>
+                <polygon points="1.03,16.06 0.35,16.23 0.15,16.8 -0.71,16.37 -0.9,15.88 -0.16,15.6 0.12,15.44 0.42,15.45" fill="#c9c9c9"/>
+                <polygon points="3.73,14.33 3.28,14.38 2.96,15.03 2.62,14.55 2.77,14.22 2.81,14.08 3.06,13.69 3.87,13.59" fill="#e2e2e2"/>
+                <polygon points="2.54,8.89 2.52,9.35 1.69,9.55 1.49,9.06 1.74,8.23 2.55,8.3" fill="#c9c9c9"/>
+                <polygon points="12.3,10.13 11.88,10.51 11.51,10.78 11.07,10.26 10.8,9.62 11.36,9.18 11.77,9.83" fill="#e2e2e2"/>
+                <polygon points="11.83,10.57 11.58,11.03 11.18,10.93 10.76,10.79 10.54,10.23 11.17,9.63 11.9,9.94" fill="#e2e2e2"/>
+                <polygon points="1.65,0.88 1.46,1.37 1.02,1.65 0.89,0.9 0.45,0.2 0.99,0.44 1.37,0.54" fill="#d6d6d6"/>
+                <polygon points="12.98,14.81 12.72,15.64 12.12,14.88 12.2,14.48 12.73,13.86" fill="#c9c9c9"/>
+                <polygon points="12.52,8.78 12.29,9.11 11.35,9.57 11.1,8.87 11.25,8.57 11.14,7.93 11.63,8.21 12.21,7.97" fill="#e2e2e2"/>
+                <polygon points="13.92,6.79 13.94,7.31 13.53,7.37 13.35,6.98 12.77,6.42 13.6,6.4 13.94,6.37" fill="#c9c9c9"/>
+                <polygon points="4.44,3.89 4.75,4.62 3.91,4.75 3.32,4.28 3.49,3.86 3.71,3.19 4.31,3.52" fill="#e2e2e2"/>
+                <polygon points="2.08,5.38 1.75,5.75 1.13,5.78 0.78,5.5 0.67,5.12 0.64,4.74 1.0,4.74 1.66,4.8" fill="#d6d6d6"/>
+                <polygon points="7.71,7.97 7.43,8.87 6.77,8.56 6.14,8.26 6.77,7.79 7.27,7.42" fill="#d6d6d6"/>
+                <polygon points="8.87,3.37 8.15,3.65 7.72,3.64 7.61,3.33 7.32,3.04 7.6,2.65 8.28,2.94" fill="#c9c9c9"/>
+                <polygon points="4.78,1.04 4.14,1.73 3.77,2.12 3.66,1.37 3.18,0.94 3.63,0.2 4.12,0.79" fill="#c9c9c9"/>
+                <polygon points="10.5,5.74 9.63,5.87 9.18,5.91 8.9,5.69 9.07,4.97 9.86,4.83" fill="#c9c9c9"/>
+                <polygon points="9.6,0.21 9.54,0.4 9.23,0.42 9.04,0.27 8.91,0.14 8.9,-0.22 9.14,-0.63 9.54,-0.34" fill="#d6d6d6"/>
+                <polygon points="2.32,6.06 2.36,6.39 1.98,6.98 1.1,6.55 1.11,5.86 1.76,5.37 2.31,5.43" fill="#e2e2e2"/>
+                <polygon points="12.8,2.63 12.28,2.77 11.86,3.22 11.32,2.74 11.0,2.23 11.86,2.19 12.16,2.06" fill="#d6d6d6"/>
+                <polygon points="11.72,15.2 11.4,15.66 11.02,15.73 10.72,15.1 10.71,14.28 11.42,14.86" fill="#c9c9c9"/>
+                <polygon points="4.66,15.64 4.43,16.22 3.51,15.77 2.98,15.51 3.26,14.6 4.29,14.61" fill="#e2e2e2"/>
+                <polygon points="7.85,15.34 7.44,15.91 6.72,16.01 6.32,15.99 6.14,15.14 6.92,14.96 7.62,14.92" fill="#c9c9c9"/>
+                <polygon points="5.68,6.0 5.17,6.56 4.47,6.13 4.18,5.45 5.34,4.96" fill="#d6d6d6"/>
+                <polygon points="2.03,1.04 1.63,1.5 1.54,2.08 0.81,1.8 0.65,1.09 0.8,0.61 1.46,0.78 1.98,0.72" fill="#e2e2e2"/>
+                <polygon points="9.74,4.64 9.44,5.15 8.8,5.53 8.5,4.87 8.39,4.6 8.27,4.37 8.96,3.68 8.94,4.48" fill="#e2e2e2"/>
+                <polygon points="14.9,8.91 14.26,9.8 13.44,9.65 13.53,9.13 13.5,8.28 14.17,8.39" fill="#e2e2e2"/>
+                <polygon points="15.03,15.61 15.02,16.26 14.37,16.42 13.74,16.41 13.6,15.87 13.65,15.12 14.36,15.21 14.53,15.37" fill="#e2e2e2"/>
+                <polygon points="1.59,10.68 0.8,10.91 0.46,11.38 -0.17,10.88 0.22,10.42 0.34,10.05 0.8,10.13" fill="#e2e2e2"/>
+                <polygon points="8.24,4.69 7.84,5.05 7.43,4.95 7.21,4.42 7.95,3.8" fill="#e2e2e2"/>
+                <polygon points="9.98,4.56 10.3,4.98 9.79,5.57 9.46,4.76 9.42,4.58 9.41,4.23 9.63,4.2 10.11,4.28" fill="#e2e2e2"/>
+                <polygon points="2.2,4.34 1.54,4.92 1.11,4.61 0.77,4.04 1.53,4.12" fill="#c9c9c9"/>
+                <polygon points="5.69,3.99 5.64,4.21 5.18,4.22 4.41,3.85 4.78,3.22 5.8,3.21" fill="#e2e2e2"/>
+                <polygon points="14.86,4.47 14.17,4.9 13.48,4.63 13.42,3.73 14.39,3.67" fill="#e2e2e2"/>
+                <polygon points="15.46,3.57 14.93,3.98 13.78,3.81 14.39,3.05 14.95,2.56" fill="#e2e2e2"/>
+                <polygon points="13.82,7.86 13.66,8.18 13.06,8.75 12.75,8.55 12.63,7.92 12.89,7.52 13.25,7.51 13.47,7.68" fill="#d6d6d6"/>
+                <polygon points="11.03,5.96 10.39,6.58 10.03,6.51 9.83,6.28 9.56,5.97 9.82,5.33 10.62,5.23" fill="#e2e2e2"/>
+                <polygon points="4.53,0.67 4.11,0.84 3.71,1.46 3.31,0.53 3.64,0.1 4.48,-0.29" fill="#e2e2e2"/>
+                <polygon points="13.97,9.81 13.56,10.59 12.7,9.91 12.48,9.14 13.36,8.85" fill="#d6d6d6"/>
+                <polygon points="8.62,10.92 8.4,11.1 8.18,10.94 8.4,10.77" fill="#a8a8a8"/>
+                <polygon points="12.95,8.08 12.65,8.36 12.51,8.07 12.68,7.91" fill="#d4d4d4"/>
+                <polygon points="13.02,10.7 12.88,10.97 12.66,10.63 12.86,10.58" fill="#d4d4d4"/>
+                <polygon points="13.89,0.05 13.68,0.19 13.45,0.12 13.7,-0.05" fill="#d4d4d4"/>
+                <polygon points="5.16,0.74 4.95,0.9 4.72,0.7 4.98,0.58" fill="#bfbfbf"/>
+                <polygon points="3.97,13.55 3.72,13.68 3.48,13.56 3.76,13.3" fill="#d4d4d4"/>
+                <polygon points="7.6,6.17 7.43,6.26 7.21,6.14 7.44,6.0" fill="#a8a8a8"/>
+                <polygon points="2.56,15.68 2.48,15.8 2.33,15.69 2.5,15.55" fill="#a8a8a8"/>
+                <polygon points="13.91,10.2 13.81,10.29 13.61,10.21 13.77,10.07" fill="#a8a8a8"/>
+                <polygon points="3.9,12.85 3.6,13.11 3.37,12.84 3.62,12.77" fill="#bfbfbf"/>
+                <polygon points="7.61,14.4 7.42,14.54 7.25,14.39 7.42,14.3" fill="#a8a8a8"/>
+                <polygon points="9.43,2.76 9.35,2.96 9.2,2.78 9.34,2.57" fill="#d4d4d4"/>
+                <polygon points="8.56,6.89 8.35,7.18 8.12,6.97 8.29,6.77" fill="#d4d4d4"/>
+                <polygon points="6.58,6.91 6.35,7.13 6.24,6.93 6.41,6.7" fill="#d4d4d4"/>
+                <polygon points="5.41,2.96 5.19,3.09 5.03,2.9 5.22,2.77" fill="#a8a8a8"/>
+                <polygon points="4.97,14.12 4.71,14.44 4.51,14.17 4.74,14.06" fill="#a8a8a8"/>
+                <polygon points="4.55,3.62 4.31,3.76 4.17,3.58 4.34,3.32" fill="#bfbfbf"/>
+                <polygon points="9.3,14.65 9.03,14.9 8.76,14.67 9.02,14.53" fill="#bfbfbf"/>
+                <polygon points="14.07,3.54 13.89,3.85 13.64,3.54 13.92,3.37" fill="#bfbfbf"/>
+                <polygon points="10.04,12.54 9.9,12.83 9.65,12.54 9.9,12.41" fill="#d4d4d4"/>
+                <polygon points="9.15,4.84 9.04,5.07 8.78,4.83 8.97,4.69" fill="#d4d4d4"/>
+                <polygon points="15.91,12.59 15.6,12.8 15.5,12.59 15.65,12.49" fill="#d4d4d4"/>
+                <polygon points="11.92,9.25 11.67,9.52 11.51,9.28 11.66,9.15" fill="#bfbfbf"/>
+                <polygon points="5.63,8.16 5.38,8.34 5.2,8.1 5.42,7.86" fill="#d4d4d4"/>
+                <polygon points="1.21,9.61 1.04,9.83 0.98,9.63 1.12,9.44" fill="#d4d4d4"/>
+                <polygon points="2.11,3.52 2.0,3.74 1.67,3.45 1.98,3.31" fill="#bfbfbf"/>
+                <polygon points="3.69,11.66 3.51,11.93 3.27,11.66 3.52,11.37" fill="#d4d4d4"/>
+                <polygon points="3.46,2.79 3.17,3.0 2.96,2.75 3.16,2.51" fill="#a8a8a8"/>
+                <polygon points="12.91,5.45 12.82,5.64 12.65,5.42 12.79,5.22" fill="#d4d4d4"/>
+                <polygon points="2.81,3.33 2.72,3.5 2.41,3.33 2.66,3.2" fill="#d4d4d4"/>
+                <polygon points="3.58,10.94 3.36,11.15 3.09,10.99 3.39,10.67" fill="#bfbfbf"/>
+                <polygon points="13.81,14.0 13.56,14.2 13.33,13.97 13.55,13.94" fill="#a8a8a8"/>
+                <polygon points="14.71,6.95 14.51,7.21 14.3,6.99 14.51,6.85" fill="#bfbfbf"/>
+                <polygon points="3.59,10.44 3.5,10.59 3.39,10.45 3.46,10.34" fill="#bfbfbf"/>
+                <polygon points="15.07,13.79 15.01,14.1 14.83,13.83 15.0,13.67" fill="#bfbfbf"/>
+                <polygon points="14.57,6.5 14.32,6.6 14.04,6.53 14.32,6.37" fill="#d4d4d4"/>
+                <polygon points="6.02,12.08 5.8,12.19 5.51,12.15 5.76,11.89" fill="#a8a8a8"/>
+                <polygon points="13.12,8.64 12.86,8.83 12.7,8.7 12.87,8.46" fill="#d4d4d4"/>
+                <polygon points="2.56,0.75 2.24,0.88 2.14,0.74 2.23,0.53" fill="#d4d4d4"/>
+                <polygon points="1.49,1.06 1.37,1.24 1.18,1.04 1.44,0.83" fill="#a8a8a8"/>
+                <polygon points="10.3,9.07 10.17,9.38 9.95,9.07 10.12,8.85" fill="#a8a8a8"/>
+                <polygon points="0.42,7.03 0.26,7.07 -0.03,6.97 0.26,6.76" fill="#a8a8a8"/>
+                <polygon points="6.94,5.02 6.81,5.19 6.72,5.0 6.86,4.82" fill="#d4d4d4"/>
+                <polygon points="11.56,14.96 11.29,15.3 11.18,15.03 11.24,14.8" fill="#a8a8a8"/>
+                <polygon points="3.94,4.8 3.76,4.92 3.56,4.75 3.75,4.61" fill="#a8a8a8"/>
+                <polygon points="12.06,13.0 11.81,13.24 11.72,13.04 11.86,12.8" fill="#d4d4d4"/>
+                <polygon points="7.92,11.68 7.7,11.86 7.54,11.75 7.73,11.49" fill="#a8a8a8"/>
+                <polygon points="14.39,9.41 14.14,9.59 14.02,9.46 14.19,9.27" fill="#a8a8a8"/>
+                <polygon points="9.28,4.25 9.03,4.32 8.86,4.19 9.03,3.92" fill="#bfbfbf"/>
+                <polygon points="12.98,3.48 12.81,3.77 12.5,3.51 12.78,3.4" fill="#a8a8a8"/>
+                <polygon points="11.95,1.84 11.74,2.04 11.42,1.83 11.73,1.73" fill="#bfbfbf"/>
+                <polygon points="6.88,14.02 6.7,14.18 6.58,14.03 6.69,13.88" fill="#bfbfbf"/>
+                <polygon points="4.44,8.29 4.22,8.55 4.09,8.3 4.25,8.22" fill="#a8a8a8"/>
+                <polygon points="8.57,8.01 8.34,8.16 8.11,7.96 8.38,7.74" fill="#bfbfbf"/>
+                <polygon points="7.53,14.68 7.3,14.73 7.08,14.59 7.3,14.38" fill="#d4d4d4"/>
+                <polygon points="8.42,0.92 8.17,1.23 8.03,0.97 8.21,0.75" fill="#a8a8a8"/>
+                <polygon points="5.28,9.7 5.17,9.86 4.93,9.67 5.16,9.48" fill="#a8a8a8"/>
+                <polygon points="11.67,12.38 11.42,12.63 11.12,12.37 11.41,12.12" fill="#bfbfbf"/>
+                <polygon points="8.84,15.33 8.55,15.45 8.33,15.23 8.61,15.13" fill="#d4d4d4"/>
+                <polygon points="4.13,10.69 3.99,10.98 3.72,10.66 3.96,10.63" fill="#a8a8a8"/>
+                <polygon points="13.44,10.41 13.18,10.59 13.03,10.32 13.17,10.14" fill="#d4d4d4"/>
+                <polygon points="0.47,1.52 0.32,1.67 0.09,1.58 0.34,1.32" fill="#bfbfbf"/>
+                <polygon points="11.47,10.62 11.37,10.7 11.08,10.56 11.37,10.37" fill="#bfbfbf"/>
+                <polygon points="6.0,3.09 5.9,3.17 5.71,3.04 5.94,2.84" fill="#bfbfbf"/>
+                <polygon points="4.52,15.89 4.32,16.14 4.2,15.84 4.33,15.58" fill="#bfbfbf"/>
+                <polygon points="1.62,3.85 1.33,3.98 1.16,3.84 1.36,3.53" fill="#a8a8a8"/>
+                <polygon points="15.77,2.61 15.57,2.86 15.33,2.65 15.49,2.48" fill="#d4d4d4"/>
+                <polygon points="4.26,10.14 4.14,10.39 3.98,10.09 4.1,10.02" fill="#bfbfbf"/>
+                <polygon points="9.1,15.25 8.85,15.45 8.61,15.34 8.86,15.1" fill="#d4d4d4"/>
+                <polygon points="7.17,1.21 7.03,1.37 6.95,1.22 7.08,1.04" fill="#bfbfbf"/>
+                <polygon points="13.36,2.02 13.18,2.22 13.0,2.0 13.22,1.72" fill="#bfbfbf"/>
+                <polygon points="15.94,9.86 15.67,9.95 15.44,9.9 15.69,9.73" fill="#a8a8a8"/>
+                <polygon points="3.13,7.95 2.86,8.17 2.82,7.89 2.93,7.66" fill="#d4d4d4"/>
+                <polygon points="6.45,0.18 6.27,0.32 6.13,0.2 6.2,0.02" fill="#d4d4d4"/>
+                <polygon points="8.74,7.87 8.53,7.93 8.44,7.8 8.58,7.56" fill="#a8a8a8"/>
+                <polygon points="12.65,2.24 12.46,2.45 12.21,2.31 12.49,2.01" fill="#bfbfbf"/>
+                <polygon points="2.86,6.52 2.74,6.66 2.54,6.56 2.72,6.42" fill="#d4d4d4"/>
+                <polygon points="15.77,14.08 15.68,14.34 15.41,14.14 15.64,13.81" fill="#d4d4d4"/>
+                <polygon points="13.46,4.54 13.33,4.77 13.18,4.56 13.39,4.28" fill="#a8a8a8"/>
+                <polygon points="12.63,3.13 12.43,3.33 12.26,3.19 12.42,2.92" fill="#d4d4d4"/>
+                <polygon points="15.68,3.79 15.42,4.13 15.23,3.82 15.43,3.74" fill="#d4d4d4"/>
+                <polygon points="12.36,14.1 12.23,14.33 12.08,14.11 12.18,13.99" fill="#a8a8a8"/>
+                <polygon points="6.68,3.58 6.53,3.81 6.42,3.64 6.5,3.52" fill="#bfbfbf"/>
+                <polygon points="13.99,7.8 13.69,7.91 13.64,7.74 13.67,7.49" fill="#a8a8a8"/>
+                <polygon points="12.85,2.69 12.69,2.84 12.57,2.73 12.66,2.46" fill="#a8a8a8"/>
+                <polygon points="7.45,2.06 7.32,2.18 7.18,2.05 7.31,1.97" fill="#a8a8a8"/>
+                <polygon points="11.92,10.95 11.75,11.08 11.5,10.87 11.79,10.66" fill="#d4d4d4"/>
+                <polygon points="6.58,13.94 6.49,14.2 6.26,13.94 6.49,13.83" fill="#d4d4d4"/>
+                <polygon points="1.98,13.02 1.86,13.13 1.64,13.0 1.8,12.78" fill="#d4d4d4"/>
+                <polygon points="4.13,1.02 4.05,1.14 3.79,0.99 3.97,0.8" fill="#a8a8a8"/>
+                <rect x="3.0" y="14.25" width="2.68" height="0.3" fill="#909090" transform="rotate(114.2 3.0 14.25)"/>
+                <rect x="13.1" y="5.33" width="2.53" height="0.17" fill="#6b6b6b" transform="rotate(170.4 13.1 5.33)"/>
+                <rect x="13.51" y="0.9" width="4.14" height="0.23" fill="#6b6b6b" transform="rotate(80.5 13.51 0.9)"/>
+                <rect x="13.82" y="13.53" width="4.08" height="0.27" fill="#6b6b6b" transform="rotate(56.7 13.82 13.53)"/>
+                <rect x="8.51" y="3.7" width="4.88" height="0.19" fill="#909090" transform="rotate(15.8 8.51 3.7)"/>
+                <rect x="5.59" y="9.52" width="2.13" height="0.1" fill="#909090" transform="rotate(104.2 5.59 9.52)"/>
+                <rect x="10.07" y="8.91" width="3.79" height="0.23" fill="#6b6b6b" transform="rotate(116.7 10.07 8.91)"/>
+                <rect x="0.17" y="12.27" width="4.15" height="0.26" fill="#6b6b6b" transform="rotate(147.4 0.17 12.27)"/>
+                <rect x="13.46" y="2.21" width="2.92" height="0.21" fill="#909090" transform="rotate(60.0 13.46 2.21)"/>
+                <rect x="15.89" y="3.73" width="2.38" height="0.17" fill="#909090" transform="rotate(43.9 15.89 3.73)"/>
+                <rect x="15.59" y="7.62" width="4.35" height="0.1" fill="#909090" transform="rotate(61.3 15.59 7.62)"/>
+                <rect x="11.06" y="3.32" width="3.45" height="0.18" fill="#6b6b6b" transform="rotate(110.4 11.06 3.32)"/>
+                <rect x="9.78" y="13.84" width="3.55" height="0.25" fill="#6b6b6b" transform="rotate(137.5 9.78 13.84)"/>
+                <rect x="9.26" y="8.69" width="2.63" height="0.14" fill="#909090" transform="rotate(100.4 9.26 8.69)"/>
+                <rect x="6.88" y="13.51" width="3.37" height="0.15" fill="#909090" transform="rotate(145.0 6.88 13.51)"/>
+                <rect x="12.44" y="1.62" width="4.22" height="0.29" fill="#6b6b6b" transform="rotate(57.9 12.44 1.62)"/>
+                <rect x="4.35" y="13.9" width="3.44" height="0.16" fill="#909090" transform="rotate(18.9 4.35 13.9)"/>
+                <rect x="11.68" y="8.94" width="3.06" height="0.3" fill="#909090" transform="rotate(133.1 11.68 8.94)"/>
+                <rect x="4.04" y="9.99" width="4.22" height="0.25" fill="#6b6b6b" transform="rotate(174.1 4.04 9.99)"/>
+                <rect x="6.3" y="8.53" width="2.18" height="0.15" fill="#6b6b6b" transform="rotate(168.7 6.3 8.53)"/>
+                <rect x="7.96" y="3.84" width="3.1" height="0.13" fill="#6b6b6b" transform="rotate(10.3 7.96 3.84)"/>
+                <rect x="5.11" y="14.48" width="2.31" height="0.31" fill="#909090" transform="rotate(173.3 5.11 14.48)"/>
+                <rect x="11.12" y="14.02" width="3.3" height="0.18" fill="#6b6b6b" transform="rotate(123.6 11.12 14.02)"/>
+                <rect x="14.75" y="9.72" width="2.63" height="0.18" fill="#6b6b6b" transform="rotate(170.5 14.75 9.72)"/>
+                <rect x="12.43" y="7.3" width="4.97" height="0.18" fill="#6b6b6b" transform="rotate(101.8 12.43 7.3)"/>
+                <rect x="12.86" y="6.37" width="2.51" height="0.17" fill="#909090" transform="rotate(106.9 12.86 6.37)"/>
+                <rect x="0.87" y="8.75" width="2.58" height="0.24" fill="#6b6b6b" transform="rotate(22.1 0.87 8.75)"/>
+                <rect x="10.29" y="7.6" width="3.72" height="0.14" fill="#6b6b6b" transform="rotate(80.3 10.29 7.6)"/>
+                <rect x="8.12" y="12.17" width="2.65" height="0.22" fill="#909090" transform="rotate(107.3 8.12 12.17)"/>
+                <rect x="15.14" y="1.53" width="2.5" height="0.14" fill="#6b6b6b" transform="rotate(61.4 15.14 1.53)"/>
+              </pattern>
+              <!-- Arrowheads for the threads, as in the reference diagram.
+                   orient="auto" turns each head to follow its own line. -->
+              <marker id="thread-arrow" viewBox="0 0 12 12" refX="9" refY="6"
+                      markerWidth="4.5" markerHeight="4.5" orient="auto"
+                      markerUnits="strokeWidth">
+                <path d="M 1 1.5 L 10.5 6 L 1 10.5 L 3 6 Z" fill="context-stroke"/>
+              </marker>
+              <!-- THE MATERIAL. The forms are not filled with a colour, they are
+                   filled with THIS: a crust of lichen patches, grit and bright
+                   flecks. It is laid out in USER SPACE, so it stays put while the
+                   forms travel across it — every one of them is cut out of the
+                   same slab, which is exactly what makes them read as one
+                   material rather than as shapes that happen to be textured.
+                   Every element is repeated across the tile edges, so the crust
+                   has no seam in it. -->
+              <!-- THE BODY. A smooth directional gradient, nothing scattered
+                   in it: deep slate where the light falls, soot-black away
+                   from it. Two variants so the bodies are not identical.
+                   objectBoundingBox, so every form is lit from the same
+                   direction no matter its size or where it has travelled. -->
+              <linearGradient id="stone-ink-a" x1="0.1" y1="0" x2="0.8" y2="1">
+                <stop offset="0%" stop-color="#39424B"/>
+                <stop offset="30%" stop-color="#1E242B"/>
+                <stop offset="68%" stop-color="#0D1013"/>
+                <stop offset="100%" stop-color="#050607"/>
+              </linearGradient>
+              <linearGradient id="stone-ink-b" x1="0.16" y1="0" x2="0.74" y2="1">
+                <stop offset="0%" stop-color="#434D57"/>
+                <stop offset="30%" stop-color="#232A32"/>
+                <stop offset="68%" stop-color="#101418"/>
+                <stop offset="100%" stop-color="#07080A"/>
+              </linearGradient>
+
+              <!-- The specular: light along the upper-left of the contour,
+                   faded to nothing well before the lower right. A stroke
+                   painted with this reads as a turning edge catching light,
+                   and it is one unbroken path. -->
+              <linearGradient id="stone-specular" x1="0" y1="0" x2="0.85" y2="1">
+                <stop offset="0%" stop-color="#E4EAEF" stop-opacity="1"/>
+                <stop offset="18%" stop-color="#AEB8C0" stop-opacity="0.62"/>
+                <stop offset="42%" stop-color="#7C868E" stop-opacity="0.12"/>
+                <stop offset="60%" stop-color="#7C868E" stop-opacity="0"/>
+                <stop offset="100%" stop-color="#7C868E" stop-opacity="0"/>
+              </linearGradient>
+
+              <!-- IRON GRIT — the turbulence, as specified, with the inner
+                   shadow chained on after it. They have to live in ONE filter:
+                   an element takes a single filter, and the grit and the
+                   cavity depth are both wanted on the same path. -->
+              <filter id="iron-grit" x="-25%" y="-25%" width="150%" height="150%"
+                      color-interpolation-filters="sRGB">
+                <!-- High frequency noise for micro-surface tooth -->
+                <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="4" result="noise"/>
+                <feColorMatrix type="matrix" values="0.33 0.33 0.33 0 0
+                                                     0.33 0.33 0.33 0 0
+                                                     0.33 0.33 0.33 0 0
+                                                     0    0    0    0.35 0"
+                               in="noise" result="desatNoise"/>
+                <!-- Blend the grit over the base gradient -->
+                <feComposite operator="in" in="desatNoise" in2="SourceGraphic" result="clippedNoise"/>
+                <feBlend mode="overlay" in="clippedNoise" in2="SourceGraphic" result="textured"/>
+
+                <!-- and the cavity depth, on the textured result -->
+                <feComponentTransfer in="SourceAlpha" result="inv">
+                  <feFuncA type="table" tableValues="1 0"/>
+                </feComponentTransfer>
+                <feGaussianBlur in="inv" stdDeviation="1.7" result="invblur"/>
+                <feOffset in="invblur" dx="0.9" dy="1.3" result="off"/>
+                <feFlood flood-color="#000000" flood-opacity="0.9" result="col"/>
+                <feComposite in="col" in2="off" operator="in" result="tinted"/>
+                <feComposite in="tinted" in2="SourceAlpha" operator="in" result="inner"/>
+                <feMerge>
+                  <feMergeNode in="textured"/>
+                  <feMergeNode in="inner"/>
+                </feMerge>
+              </filter>
+              <!-- BACKLIGHT. The glow is not a filter ON the form — it is a copy
+                   of the form BEHIND it, blown out and blurred. That is what a
+                   light source behind an object actually looks like: the halo
+                   is the shape of the thing occluding it. -->
+              <filter id="backlight-far" x="-70%" y="-70%" width="240%" height="240%"
+                      color-interpolation-filters="sRGB">
+                <feGaussianBlur stdDeviation="9"/>
+              </filter>
+              <filter id="backlight-near" x="-40%" y="-40%" width="180%" height="180%"
+                      color-interpolation-filters="sRGB">
+                <feGaussianBlur stdDeviation="2.2"/>
+              </filter>
+              <!-- The chiselled edge: the form is drawn again, blurred and
+                   offset down-right, and clipped to itself, which reads as a
+                   bevel catching the light from above-left. -->
+              <filter id="bevel-shade" x="-20%" y="-20%" width="140%" height="140%"
+                      color-interpolation-filters="sRGB">
+                <feGaussianBlur stdDeviation="1.6"/>
+              </filter>
+              <mask id="ink-grain" maskUnits="userSpaceOnUse" x="-40" y="-40" width="460" height="280">
+                <rect x="-40" y="-40" width="460" height="280" fill="url(#ink-grain-tile)"/>
+              </mask>
+              <!-- 1. Authentic Risograph Halftone / Stepped Dither Matrix Pattern -->
+              <pattern id="grunge-dither-pat" width="8" height="8" patternUnits="userSpaceOnUse">
+                <rect x="0" y="0" width="4" height="4" fill="var(--c-hot-pink)" opacity="0.4" />
+                <rect x="4" y="4" width="4" height="4" fill="var(--c-flame-orange)" opacity="0.4" />
+                <circle cx="2" cy="6" r="1.2" fill="#000000" opacity="0.5" />
+                <circle cx="6" cy="2" r="1.2" fill="#ffffff" opacity="0.5" />
+              </pattern>
+              <!-- 2. Bio-Map Cellular 8-Bit Pixel Matrix Pattern -->
+              <pattern id="bio-pixel-matrix" width="12" height="12" patternUnits="userSpaceOnUse">
+                <rect x="0" y="0" width="2" height="2" fill="var(--c-pixel-green)" opacity="0.3" />
+                <rect x="6" y="6" width="2" height="2" fill="var(--c-electric-blue)" opacity="0.35" />
+                <circle cx="9" cy="3" r="1" fill="#ffffff" opacity="0.4" />
+              </pattern>
+              <!-- 3. Vibrant Gradient for Stepped Dither Halo -->
+              <linearGradient id="festival-halo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="var(--c-hot-pink)" stop-opacity="0.85" />
+                <stop offset="50%" stop-color="var(--c-flame-orange)" stop-opacity="0.8" />
+                <stop offset="100%" stop-color="var(--c-electric-blue)" stop-opacity="0.75" />
+              </linearGradient>
+            </defs>
+
+            <!-- 1. Lower Stepped Organic Contour (Electric Cyan & Pixel Green - Festival MV Ground Horizon) -->
+            <path id="morph-blob-under" class="morph-blob-under" d="" />
+
+            <!-- 2. Primary Organic Stepped Bitmap Halo (Vibrant Flame Orange & Hot Pink Cloud) -->
+            <path id="morph-blob-path" class="morph-blob-path" d="" />
+            
+            <!-- 3. Scattered Constellation Halftone Stipple Dots (Festival MV & Bio-Map Tactile Texture) -->
+            <g id="morph-stipple-dots" class="morph-stipple-group">
+              <circle cx="35" cy="45" r="3" fill="#ffffff" opacity="0.9" />
+              <circle cx="55" cy="28" r="2" fill="var(--c-flame-orange)" opacity="0.85" />
+              <circle cx="85" cy="22" r="3.2" fill="#000000" stroke="#ffffff" stroke-width="1" opacity="0.8" />
+              <circle cx="120" cy="18" r="2.2" fill="var(--c-hot-pink)" opacity="0.9" />
+              <circle cx="160" cy="32" r="2.8" fill="#ffffff" opacity="0.85" />
+              <circle cx="215" cy="20" r="3.2" fill="var(--c-electric-blue)" opacity="0.9" />
+              <circle cx="265" cy="28" r="2.4" fill="var(--c-flame-orange)" opacity="0.85" />
+              <circle cx="305" cy="42" r="3" fill="#ffffff" opacity="0.9" />
+              <circle cx="345" cy="38" r="2.2" fill="var(--c-pixel-green)" opacity="0.85" />
+              
+              <circle cx="28" cy="95" r="2.5" fill="var(--c-hot-pink)" opacity="0.85" />
+              <circle cx="68" cy="85" r="3.2" fill="#000000" stroke="var(--c-flame-orange)" stroke-width="1.2" />
+              <circle cx="135" cy="75" r="2" fill="#ffffff" opacity="0.8" />
+              <circle cx="255" cy="88" r="2.8" fill="#ffffff" opacity="0.85" />
+              <circle cx="318" cy="95" r="2.4" fill="var(--c-hot-pink)" opacity="0.85" />
+              <circle cx="355" cy="115" r="3.2" fill="#000000" stroke="#ffffff" stroke-width="1" />
+
+              <circle cx="45" cy="148" r="2.4" fill="var(--c-electric-blue)" opacity="0.9" />
+              <circle cx="95" cy="165" r="3" fill="#ffffff" opacity="0.85" />
+              <circle cx="145" cy="155" r="2.2" fill="var(--c-pixel-green)" opacity="0.85" />
+              <circle cx="185" cy="172" r="3.5" fill="var(--c-flame-orange)" opacity="0.9" />
+              <circle cx="235" cy="162" r="2.4" fill="#ffffff" opacity="0.85" />
+              <circle cx="285" cy="168" r="3" fill="var(--c-hot-pink)" opacity="0.9" />
+              <circle cx="335" cy="155" r="2.5" fill="var(--c-electric-blue)" opacity="0.85" />
+            </g>
+
+            <!-- 4. Bio-Map Voronoi / Constellation Cellular Web Chords -->
+            <g id="morph-web-group"></g>
+
+            <!-- 5. Festival MV Bouncing White Parabolic Arches (Harmonic Jumping Waves) -->
+            <path id="morph-arches-path" class="morph-arches-path" d="" />
+
+            <!-- Scattered rounded forms the threads wrap around -->
+            <!-- Two glow layers and a bevel layer, all carrying the SAME paths
+                 as the forms: far bloom, hot rim, then the forms, then the
+                 bevel shading on top of them. -->
+            <g id="morph-pebbles-bloom"></g>
+            <g id="morph-pebbles-rim"></g>
+            <g id="morph-pebbles-group"></g>
+            <g id="morph-pebbles-bevel"></g>
+            <!-- Small marks scattered inside the forms, on their own layer so
+                 they can carry their own ink. -->
+            <g id="morph-pebble-marks"></g>
+            <g id="morph-comp-rings-group"></g>
+
+            <!-- 6. Festival MV Signature Radiating Spoke Rays (Thick Bold Crisp White) -->
+            <g id="morph-spokes-group"></g>
+
+            <!-- 7. Flowing Bio-Map Ribbon Contour -->
+            <path id="morph-ribbon-path" class="morph-ribbon-path" d="" />
+
+            <!-- 8. Floating Geometric Orbit Rings -->
+            <g id="morph-rings-group"></g>
+
+            <!-- 9. Central Focal Core Node (Bullseye Target Rings) -->
+            <g id="morph-core-group">
+              <circle id="morph-core-ring-outer" class="morph-core-ring-outer" cx="190" cy="95" r="24" />
+              <circle id="morph-core-ring" class="morph-core-ring" cx="190" cy="95" r="14" />
+              <circle id="morph-core-dot" class="morph-core-dot" cx="190" cy="95" r="7.5" />
+            </g>
+
+            <!-- 10. Satellite Orbit Nodes (Solid Black with White Rims & Halos) -->
+            <g id="morph-satellites-group"></g>
+          </svg>
+
+        </div>
+
+        <!-- THE CIRCLE RUN, lifted out of the foot of the page and set as a
+             band of its own straight across the canvas above the name: one
+             circle opening out into many and closing back to one, running
+             along the line rather than stacking up at a point. -->
+        <div class="hero-dot-band" aria-hidden="true">
+          <div class="edition-dots">
+          <span class="edition-dot edition-dot-one" style="left:3.0%;--dy:0px"></span>
+          <span class="edition-dot" style="left:12.5%;--dy:4.2px"></span>
+          <span class="edition-dot" style="left:19.7%;--dy:6.4px"></span>
+          <span class="edition-dot" style="left:25.4%;--dy:5.6px"></span>
+          <span class="edition-dot" style="left:29.9%;--dy:2.2px"></span>
+          <span class="edition-dot" style="left:33.7%;--dy:-2.3px"></span>
+          <span class="edition-dot" style="left:37.0%;--dy:-5.7px"></span>
+          <span class="edition-dot" style="left:40.0%;--dy:-6.4px"></span>
+          <span class="edition-dot" style="left:42.7%;--dy:-4.1px"></span>
+          <span class="edition-dot" style="left:45.2%;--dy:0.1px"></span>
+          <span class="edition-dot" style="left:47.6%;--dy:4.3px"></span>
+          <span class="edition-dot" style="left:49.9%;--dy:6.4px"></span>
+          <span class="edition-dot" style="left:52.3%;--dy:5.6px"></span>
+          <span class="edition-dot" style="left:54.7%;--dy:2.1px"></span>
+          <span class="edition-dot" style="left:57.2%;--dy:-2.4px"></span>
+          <span class="edition-dot" style="left:59.8%;--dy:-5.7px"></span>
+          <span class="edition-dot" style="left:62.6%;--dy:-6.4px"></span>
+          <span class="edition-dot" style="left:65.7%;--dy:-4.0px"></span>
+          <span class="edition-dot" style="left:69.2%;--dy:0.2px"></span>
+          <span class="edition-dot" style="left:73.2%;--dy:4.4px"></span>
+          <span class="edition-dot" style="left:77.9%;--dy:6.4px"></span>
+          <span class="edition-dot" style="left:83.4%;--dy:5.5px"></span>
+          <span class="edition-dot edition-dot-one" style="left:90.2%;--dy:0px"></span>
+          </div>
+        </div>
+
+        <!-- NAME + CV set like the HFBK grid: black type sitting on solid
+             colour blocks rather than plain lettering on the ground. -->
+        <div class="hero-name-below">
+          <h1 class="poster-hero-name-full"><span class="hl hl-yellow">MIHAL GUREVICH</span></h1>
+          <!-- CV rides the same line as the name, flush right, same size. -->
+          <button type="button" class="hero-cv-link" id="hero-cv-link"><span class="hl hl-yellow">CV</span></button>
+        </div>
+      </div>
+
+      <!-- ==================================================================
+           THE RIGHT-HAND COLUMN — the index, as established.
+           Charcoal and mint blocks on off-white, a three-sided red frame
+           measuring them, a dotted track, real counts and the live state
+           ticks. Unchanged from before, except that three of its plain
+           rectangles have been swapped for curated silhouettes off the
+           reference sheet: the monolith with its horn, the seed-pod, and one
+           of the striding figures.
+           Every number is real and checked: 10 bodies (SLOT_COUNT), 20 works
+           (projects.json), 4 arrangements (COMPOSITIONS).
+           =================================================================== -->
+      <div class="hero-side-panel" aria-hidden="true">
+        <svg viewBox="0 0 84 400" preserveAspectRatio="xMidYMid slice"
+             xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <clipPath id="panel-clip"><rect x="0" y="0" width="84" height="400"/></clipPath>
+            <!-- one blade of the hanging line, drooping from its hook -->
+            <path id="drape" d="M 0 0 C 1.4 7, -1.6 15, -8.5 21
+                                C -11.5 23.5, -12.5 26.5, -9.5 26.5
+                                C -4.6 26.5, 0 19.5, 2.4 11.6
+                                C 3.9 6.8, 3.4 1.8, 0 0 Z"/>
+            <!-- the starburst that sits inside the block -->
+            <g id="burst">
+              <path d="M 0 -9 C 1.3 -4, 1.3 2, 0.6 9 C 0.4 10.6, -1.2 10.6, -1.3 9
+                       C -1.9 2, -1.7 -4, -0.7 -9 Z"/>
+              <path d="M -1 -6 C -3.8 -2.4, -6 2.4, -7.6 8.4 C -8 10, -9.5 9.4, -9.2 7.8
+                       C -8 1.8, -5.6 -3.2, -2.6 -7 Z"/>
+              <path d="M 1 -6 C 3.8 -2.4, 6 2.4, 7.6 8.4 C 8 10, 9.5 9.4, 9.2 7.8
+                       C 8 1.8, 5.6 -3.2, 2.6 -7 Z"/>
+              <path d="M -1.6 -7.6 C -5.4 -8.6, -9 -8, -11.6 -6.4 C -12.9 -5.6, -12.2 -4.1, -10.8 -4.6
+                       C -8.4 -5.5, -5.2 -5.8, -2 -5.2 Z"/>
+              <path d="M 1.6 -7.6 C 5.4 -8.6, 9 -8, 11.6 -6.4 C 12.9 -5.6, 12.2 -4.1, 10.8 -4.6
+                       C 8.4 -5.5, 5.2 -5.8, 2 -5.2 Z"/>
+            </g>
+            <g id="strider" stroke="#141414" stroke-width="2.4"
+               stroke-linecap="round" fill="none">
+              <path d="M 6 -16 L 7 -9"/>
+              <path d="M 7 -14.5 L 12.5 -12.5"/>
+              <path d="M 6 -14.5 L 1.5 -10.5"/>
+              <path d="M 7 -9 L 10 -5 L 11.8 0"/>
+              <path d="M 7 -9 L 3.5 -5 L 1 0"/>
+            </g>
+          </defs>
+
+          <rect x="0" y="0" width="84" height="400" fill="#E8E8E8"/>
+
+          <g clip-path="url(#panel-clip)">
+            <!-- blocks -->
+            <rect class="panel-block" x="14" y="0" width="70" height="72" fill="#303034"/>
+            <rect class="panel-block" x="4" y="150" width="30" height="54" fill="#8CCCA0"/>
+            <rect class="panel-block" x="50" y="236" width="34" height="40" fill="#303034"/>
+            <rect class="panel-block" x="0" y="336" width="84" height="64" fill="#8CCCA0"/>
+
+            <!-- SWAP 1 — THE MONOLITH, standing in the head block where a
+                 plain charcoal rectangle used to carry nothing. -->
+            <g transform="translate(24 6) scale(0.44)">
+              <path fill="#E8E8E8" d="
+                M 30 148 C 26 126, 30 104, 40 92 C 46 85, 54 84, 58 88
+                C 62 92, 60 99, 55 100 C 51 101, 49 98, 51 95
+                C 53 92, 57 94, 56 97 C 61 94, 60 86, 53 84
+                C 44 81, 33 88, 28 100 C 22 114, 21 134, 25 150
+                C 27 158, 34 164, 44 164 C 56 164, 66 156, 68 144
+                C 70 130, 64 116, 56 110 C 52 107, 47 108, 46 112
+                C 44 120, 50 128, 52 138 C 54 148, 50 156, 43 156
+                C 36 156, 32 153, 30 148 Z"/>
+              <g fill="#303034">
+                <path d="M 45 124 C 47 132, 48 140, 46 148 C 45 150, 43 150, 43 148
+                         C 44 140, 43 132, 42 126 C 42 123, 44 122, 45 124 Z"/>
+                <path d="M 52 128 C 54 135, 55 142, 54 148 C 54 150, 52 150, 52 148
+                         C 52 142, 51 135, 49 130 C 48 127, 51 126, 52 128 Z"/>
+              </g>
+            </g>
+
+            <!-- the dotted track -->
+            <path class="panel-track" d="M 42 8 C 58 48, 26 84, 44 124
+                     S 20 178, 40 214 S 66 258, 44 296 S 22 340, 38 396"
+                  fill="none" stroke="#141414" stroke-width="3.4"
+                  stroke-linecap="round" stroke-dasharray="0.1 7"/>
+
+            <!-- the wireframe, three sides -->
+            <g class="panel-frame" stroke="#EC2C24" fill="none" stroke-width="1">
+              <path d="M 7 16 L 69 16 L 69 312 L 7 312"/>
+              <line x1="7" y1="128" x2="69" y2="128"/>
+              <line x1="7" y1="222" x2="69" y2="222"/>
+              <line x1="48" y1="16" x2="48" y2="312"/>
+              <circle cx="48" cy="128" r="4.4" fill="#141414" stroke="none"/>
+            </g>
+
+            <!-- The counts and their labels used to sit here. The column
+                 carries a bio now instead of a read-out. -->
+
+            <!-- SWAP 2 — A STRIDER, in the charcoal block beside the state row -->
+            <g transform="translate(55 272) scale(0.95)">
+              <use href="#strider" stroke="#E8E8E8"/>
+              <circle cx="6" cy="-18.6" r="2.4" fill="#E8E8E8"/>
+            </g>
+
+            <!-- Four ticks, the live one filled. The STATE label above them
+                 is gone with the rest of the column's type; the marks stay. -->
+            <g class="panel-states" stroke="#EC2C24" stroke-width="1.1">
+              <rect id="panel-state-0" x="9"  y="252" width="9" height="9"/>
+              <rect id="panel-state-1" x="21" y="252" width="9" height="9"/>
+              <rect id="panel-state-2" x="33" y="252" width="9" height="9"/>
+              <rect id="panel-state-3" x="45" y="252" width="9" height="9"/>
+            </g>
+
+            <!-- THE HANGING LINE. Four blades draped over a wire, one limb
+                 crossing them and a drop beneath — drawn in the column's own
+                 ink and acid, not in the original's blue and red. -->
+            <g class="panel-art" transform="translate(42 308) scale(1.22) translate(-42 -308)">
+              <line x1="4" y1="296" x2="80" y2="293" stroke="#1A1F2E" stroke-width="1.1"/>
+              <g fill="#1A1F2E">
+                <use href="#drape" x="18" y="295"/>
+                <use href="#drape" x="33" y="294.4"/>
+                <use href="#drape" x="48" y="293.8"/>
+                <use href="#drape" x="63" y="293.2"/>
+              </g>
+              <path d="M 30 305 C 38 303, 44 308, 47 315 C 49 319, 53 321, 57 320
+                       C 59 319.6, 60 321.6, 58 322.6 C 52 325, 46 322, 43 316
+                       C 40 310, 35 307, 30 308.6 Z" fill="#D4FF00"/>
+              <path d="M 57 326 l 2.6 2.4 l -1.2 3.2 l -3.2 0 l -1.2 -3.2 Z" fill="#D4FF00"/>
+              <line x1="57" y1="320" x2="57" y2="326" stroke="#1A1F2E" stroke-width="0.7"/>
+            </g>
+
+            <!-- THE MARCH. The block with its burst, the tension lines drawing
+                 back to one point, the receding chain, and the three walkers
+                 — the whole second sheet, in ink and acid only. -->
+            <g class="panel-art" transform="translate(40 366) scale(1.18) translate(-40 -366)">
+              <rect x="4" y="342" width="21" height="29" fill="#D4FF00"/>
+              <g fill="#1A1F2E" transform="translate(14.5 357) scale(0.92)">
+                <use href="#burst"/>
+              </g>
+              <!-- The small version of this scene used to sit here: the rays,
+                   the run of ellipses and three striders. It now runs at full
+                   size just below, as the featured work, and carrying it twice
+                   in a column this narrow read as a mistake rather than as a
+                   reprise. -->
+            </g>
+            <!-- 2026 was here twice on one page: the standing line at the
+                 foot already carries the year. -->
+            <line class="panel-frame" x1="9" y1="330" x2="78" y2="330"
+                  stroke="#EC2C24" stroke-width="1"/>
+          </g>
+        </svg>
+
+        <!-- The featured work is DRAWN, not photographed. It used to be a
+             scan of the page dropped in as a JPEG, white paper and all, sat
+             in a hairline box — a picture of a drawing rather than a drawing.
+             Same three clusters, redrawn in the panel's own ink on its own
+             ground, with no white behind them and nothing framing them. -->
+        <div class="panel-bio">
+          <p><strong>Motion &amp; 3D designer, Bezalel graduate.</strong>
+             3D animation and motion graphics in Blender and After Effects,
+             with a focus on typography, colour and composition — from first
+             concept to finished motion.</p>
+        </div>
+
+        <div class="featured-artwork">
+          <svg class="featured-drawing" viewBox="0 0 124 88" xmlns="http://www.w3.org/2000/svg"
+         aria-hidden="true">
+      <g fill="#1A1F2E" fill-rule="nonzero" stroke="none">
+      <g transform="translate(62 17) scale(0.33)">
+        <path d="M -42 -7.3 C -41.5 -5.3, -41.6 -0.7, -41.9 0.6 C -42.2 2, -43.3 2.4, -44.2 2.1 C -45.1 1.8, -47.4 -0.3, -48.3 -1.8 C -49.1 -3.3, -50.1 -6.8, -50.4 -8.6 C -50.6 -10.4, -50.5 -13.8, -49.8 -14.5 C -49.1 -15.3, -46.7 -14.8, -45.6 -13.8 C -44.5 -12.7, -42.5 -9.4, -42 -7.3 Z M -35.3 -6 C -34.9 -4.2, -35.6 -0.5, -36 0.7 C -36.4 1.8, -37.3 2.5, -38.1 2.4 C -38.9 2.2, -41.1 1.1, -41.8 -0.4 C -42.5 -1.9, -43.2 -6.5, -43.3 -8.2 C -43.4 -9.9, -43.2 -12, -42.6 -12.5 C -42 -13, -40.3 -12.6, -39.3 -11.7 C -38.3 -10.7, -35.8 -7.7, -35.3 -6 Z M -29.6 -5.4 C -29.2 -3.6, -29.4 -0.5, -29.7 0.7 C -30 2, -30.9 3.6, -31.8 3.3 C -32.6 3.1, -35.1 0.6, -35.7 -0.9 C -36.4 -2.4, -36.5 -5.7, -36.5 -7.4 C -36.5 -9.1, -36.3 -12, -35.7 -12.6 C -35.1 -13.1, -33.2 -12.6, -32.4 -11.6 C -31.5 -10.5, -29.9 -7.1, -29.6 -5.4 Z M -23.4 -4.3 C -22.9 -2.7, -22.8 0.3, -23.1 1.3 C -23.4 2.3, -24.5 3.2, -25.4 3 C -26.2 2.9, -28.5 1.7, -29.2 0.4 C -30 -0.9, -30.6 -4.9, -30.5 -6.4 C -30.5 -7.9, -29.5 -9.8, -28.9 -10.3 C -28.3 -10.7, -26.9 -10.5, -26.2 -9.6 C -25.4 -8.8, -23.8 -5.8, -23.4 -4.3 Z M -17.1 -3.4 C -16.8 -1.9, -17.2 0, -17.5 1 C -17.7 2, -18.3 3.8, -19 3.7 C -19.7 3.5, -21.8 1.4, -22.4 0.1 C -23 -1.2, -23.2 -4.2, -23.3 -5.6 C -23.3 -7, -23.4 -9.6, -22.9 -10.1 C -22.3 -10.6, -20.4 -10, -19.5 -9.1 C -18.7 -8.1, -17.3 -4.8, -17.1 -3.4 Z M -10.6 -3.3 C -10 -1.9, -9.7 1, -10 2 C -10.2 3, -11.6 3.9, -12.5 3.8 C -13.3 3.7, -15.2 2.7, -15.9 1.5 C -16.5 0.3, -16.9 -3.5, -17 -4.8 C -17.1 -6.2, -16.8 -7.5, -16.4 -8 C -15.9 -8.4, -14.6 -8.6, -13.8 -8 C -13 -7.3, -11.1 -4.8, -10.6 -3.3 Z M -5.4 -2.7 C -4.9 -1.4, -3.8 0.9, -3.9 1.9 C -4.1 2.9, -5.5 4.5, -6.3 4.4 C -7.1 4.3, -8.9 2.1, -9.6 1 C -10.2 -0, -10.7 -2.2, -10.7 -3.4 C -10.7 -4.6, -10.2 -7, -9.7 -7.5 C -9.3 -8, -8.2 -7.5, -7.6 -6.8 C -7 -6.1, -5.9 -3.9, -5.4 -2.7 Z M 1.5 -1.3 C 2 0, 2.1 2.5, 1.9 3.4 C 1.8 4.4, 1.3 5.6, 0.6 5.4 C -0.1 5.1, -2.2 2.9, -2.8 1.8 C -3.5 0.6, -3.9 -1.7, -4 -2.9 C -4.1 -4.1, -4.1 -6.4, -3.7 -6.8 C -3.3 -7.3, -2 -6.9, -1.3 -6.1 C -0.6 -5.3, 1 -2.7, 1.5 -1.3 Z M 7.2 -0.3 C 7.5 0.9, 8.5 3.2, 8.3 3.9 C 8.1 4.6, 6.4 5.1, 5.7 4.8 C 5.1 4.5, 4 2.9, 3.6 2 C 3.3 1.1, 3.3 -0.5, 3.2 -1.5 C 3.1 -2.5, 2.6 -4.6, 2.9 -5.1 C 3.3 -5.5, 5.1 -5.5, 5.7 -4.8 C 6.3 -4.1, 6.8 -1.5, 7.2 -0.3 Z M 13.8 0.4 C 14.2 1.5, 15.1 2.7, 15 3.5 C 14.8 4.3, 13.7 5.9, 13 5.9 C 12.3 5.8, 10.6 4.1, 10.1 3.1 C 9.6 2.2, 9.1 0.2, 9.2 -0.9 C 9.2 -1.9, 9.9 -4.1, 10.4 -4.6 C 10.8 -5.1, 11.9 -4.9, 12.4 -4.2 C 12.8 -3.5, 13.4 -0.7, 13.8 0.4 Z M 19.6 0.6 C 19.8 1.7, 20.4 4, 20.4 4.6 C 20.3 5.3, 20.1 5.2, 19.6 5 C 19 4.8, 17 4.1, 16.5 3.4 C 16 2.6, 15.8 0.7, 15.8 -0.2 C 15.9 -1.1, 16.4 -2.5, 16.9 -2.9 C 17.4 -3.3, 18.7 -3.6, 19.1 -3.1 C 19.5 -2.6, 19.4 -0.5, 19.6 0.6 Z M 27.1 1.6 C 27.2 2.4, 26.3 3.5, 26.1 4.2 C 25.9 4.8, 26.1 6.4, 25.7 6.3 C 25.3 6.2, 23.6 4.5, 23.1 3.7 C 22.7 2.9, 22.4 1.5, 22.5 0.7 C 22.5 -0.1, 23.3 -1.6, 23.6 -1.9 C 24 -2.1, 24.6 -1.7, 25.1 -1.2 C 25.6 -0.7, 27 0.9, 27.1 1.6 Z M 32.1 2 C 32.3 2.9, 33 4.9, 33 5.5 C 33 6.2, 32.7 6.6, 32.3 6.4 C 31.9 6.2, 30.6 4.7, 30.2 4.1 C 29.7 3.4, 29.1 2.4, 29.1 1.8 C 29 1.2, 29.5 0.1, 29.9 -0.3 C 30.3 -0.8, 31.6 -1.5, 31.9 -1.1 C 32.3 -0.8, 32 1.1, 32.1 2 Z M 38.5 2.7 C 38.6 3.5, 38.6 5.6, 38.5 6.1 C 38.4 6.5, 38 6, 37.7 5.8 C 37.3 5.7, 36.4 5.3, 36.1 4.9 C 35.9 4.5, 35.7 3.6, 35.7 3 C 35.7 2.3, 35.7 0.7, 36 0.3 C 36.2 -0, 37.2 -0.1, 37.5 0.3 C 37.9 0.6, 38.4 1.9, 38.5 2.7 Z M 45.8 3.2 C 46 3.8, 45.2 5.6, 44.9 6.1 C 44.6 6.5, 44 6.4, 43.9 6.3 C 43.7 6.3, 44.1 6.1, 43.9 5.7 C 43.7 5.2, 42.7 3.7, 42.5 3.1 C 42.3 2.5, 42.4 1.6, 42.6 1.3 C 42.8 1.1, 43.1 1.2, 43.6 1.4 C 44 1.7, 45.6 2.5, 45.8 3.2 Z"/>
+      </g>
+      <g transform="translate(27 53) scale(0.52)">
+        <path d="M -40.7 -33.1 C -39.1 -34.4, 37.4 -32.2, 39 -30.8 C 40.6 -29.4, 39.7 34.1, 38.1 35.4 C 36.4 36.7, -41.1 35.4, -42.6 34.1 C -44.2 32.7, -42.4 -31.8, -40.7 -33.1 Z M -8.3 -21.4 C -8.8 -19.9, -6.7 5.4, -6 6.8 C -5.2 8.1, 6.4 7.3, 6.9 5.9 C 7.4 4.4, 4.4 -21.2, 3.6 -22.6 C 2.9 -23.9, -7.8 -22.9, -8.3 -21.4 Z M 2.1 -19.7 C 1.1 -20.6, -23.1 -27.7, -24.7 -27.7 C -26.2 -27.7, -29.2 -20.7, -28.1 -19.8 C -27.1 -18.9, -5.6 -9.7, -4.1 -9.7 C -2.6 -9.7, 3.2 -18.8, 2.1 -19.7 Z M 2 -10.1 C 3.4 -10.1, 24.3 -19.8, 25.3 -20.7 C 26.3 -21.7, 23.9 -29, 22.5 -28.9 C 21.1 -28.8, -2 -20.2, -3 -19.3 C -4.1 -18.3, 0.6 -10, 2 -10.1 Z M -4.2 -2.6 C -5.8 -1.9, -27.7 19.1, -28.8 20.6 C -29.8 22.1, -26.9 27.4, -25.3 26.8 C -23.7 26.1, 1.4 8.4, 2.4 7 C 3.5 5.5, -2.6 -3.3, -4.2 -2.6 Z M -5.9 -0.7 C -6.9 0.3, -14.6 23.6, -14.7 25.2 C -14.8 26.7, -8.6 30.7, -7.6 29.7 C -6.7 28.7, 4.5 6.2, 4.6 4.7 C 4.6 3.2, -5 -1.7, -5.9 -0.7 Z M -5.2 4.3 C -5.3 5.7, 1.8 27, 2.5 28.1 C 3.3 29.1, 9 26.5, 9.1 25.1 C 9.2 23.7, 5.3 0.8, 4.6 -0.3 C 3.9 -1.3, -5.1 2.9, -5.2 4.3 Z M -3 5.3 C -2.2 6.7, 18.5 25, 19.9 25.7 C 21.3 26.4, 25.6 20.6, 24.7 19.2 C 23.9 17.8, 4.9 -1.6, 3.6 -2.3 C 2.2 -3, -3.8 3.9, -3 5.3 Z M 2.4 -30.2 C 1.5 -30.7, -0.5 -30.5, -1.7 -30.2 C -2.9 -29.9, -5.4 -29.3, -6 -28.3 C -6.6 -27.3, -6.4 -24.1, -5.7 -23.2 C -5.1 -22.2, -2.9 -21.8, -1.7 -21.7 C -0.4 -21.6, 2.1 -21.6, 3.1 -22.3 C 4.1 -23, 5.2 -25.5, 5.1 -26.7 C 5 -27.8, 3.4 -29.7, 2.4 -30.2 Z"/>
+      </g>
+      <g transform="translate(63 46) scale(0.44)">
+        <path d="M 26.5 0.1 C 23.6 -1, -26.8 -25, -29.6 -26.4 C -32.4 -27.8, -32.5 -29.4, -29.6 -28.3 C -26.6 -27.2, 26.5 -6.2, 29.3 -4.7 C 32.1 -3.3, 29.5 1.2, 26.5 0.1 Z M 27.1 0.2 C 24.1 -0.4, -27.5 -14.5, -30.4 -15.3 C -33.3 -16.2, -33.5 -17.8, -30.5 -17.2 C -27.5 -16.6, 26 -4.5, 28.8 -3.6 C 31.7 -2.8, 30.1 0.8, 27.1 0.2 Z M 28.3 0.2 C 25.4 0.2, -26.4 -3.9, -29.3 -4.3 C -32.2 -4.7, -31.9 -7.5, -29.1 -7.5 C -26.2 -7.5, 25.3 -5, 28.2 -4.6 C 31 -4.2, 31.2 0.2, 28.3 0.2 Z M 28.5 0.5 C 25.6 0.9, -27.1 4.9, -30.1 5.1 C -33.1 5.3, -33.6 4.5, -30.7 4 C -27.8 3.5, 25.5 -4.1, 28.5 -4.3 C 31.5 -4.5, 31.4 -0, 28.5 0.5 Z M 28.1 0.4 C 25.3 1.4, -27.5 14.7, -30.5 15.4 C -33.4 16.1, -33.7 14.7, -30.8 13.7 C -28 12.8, 24.1 -3.3, 27 -4 C 30 -4.6, 31 -0.6, 28.1 0.4 Z M 29.7 0.5 C 27 1.9, -25.9 24, -28.9 25.2 C -32 26.4, -34 25.1, -31.2 23.7 C -28.4 22.2, 23.5 -2, 26.5 -3.2 C 29.6 -4.3, 32.5 -1, 29.7 0.5 Z"/>
+      </g>
+      <g transform="translate(93 56) scale(0.6)">
+        <path d="M -34.5 -11.6 C -32.9 -12.8, -19.8 -16.4, -18.1 -15.4 C -16.4 -14.5, -14.2 -2.4, -14.4 0 C -14.7 2.5, -19 8.6, -20.5 9.3 C -22 10, -30.7 9.6, -32.1 8.7 C -33.5 7.8, -37.5 0.6, -37.7 -1.4 C -38 -3.5, -36.2 -10.4, -34.5 -11.6 Z M -17.6 -23.6 C -17.2 -22.3, -17.6 -19, -18.7 -18 C -19.7 -16.9, -23.3 -16, -24.9 -16.1 C -26.5 -16.2, -28.9 -17.7, -29.7 -18.6 C -30.5 -19.5, -30.9 -21.5, -30.5 -22.7 C -30.2 -23.9, -28.7 -26.3, -27.3 -27 C -26 -27.7, -22.4 -28, -21 -27.5 C -19.6 -27, -17.9 -25, -17.6 -23.6 Z M -24 -17.5 C -23.3 -18.6, -7.1 -29.4, -6 -29.7 C -4.9 -30, -1.2 -24.4, -1.9 -23.3 C -2.6 -22.3, -19 -8.8, -20.2 -8.6 C -21.3 -8.3, -24.7 -16.4, -24 -17.5 Z M -33.9 -6.2 C -34.9 -6.5, -47.5 -19.5, -48 -20.4 C -48.5 -21.3, -44.9 -25.3, -43.9 -25 C -42.9 -24.6, -28.9 -14.4, -28.4 -13.4 C -27.9 -12.5, -32.9 -5.8, -33.9 -6.2 Z M -24 11.5 C -24.3 13, -37.8 35.3, -38.9 36.3 C -39.9 37.3, -45.6 33.1, -45.4 31.6 C -45.1 30.1, -35.5 7.3, -34.5 6.3 C -33.4 5.3, -23.8 10, -24 11.5 Z M -15.6 6.9 C -14.7 8, -6.8 31.8, -6.7 33.2 C -6.5 34.7, -12 37.3, -12.9 36.2 C -13.9 35.1, -25.7 12.4, -25.9 10.9 C -26 9.4, -16.6 5.8, -15.6 6.9 Z M -10.8 -10.6 C -9.2 -11.7, 3.8 -13.3, 5.4 -12.3 C 7.1 -11.3, 9.3 -1, 9.2 1.4 C 9 3.7, 5.8 10.5, 4.3 11.2 C 2.8 11.9, -7.3 10.8, -8.8 9.9 C -10.3 9.1, -13.2 3, -13.4 0.9 C -13.6 -1.1, -12.3 -9.5, -10.8 -10.6 Z M 6.9 -22.1 C 7.1 -20.8, 6.4 -18.1, 5.4 -16.8 C 4.4 -15.6, 1.6 -13.5, -0.1 -13.4 C -1.7 -13.3, -5.3 -14.8, -6.3 -15.9 C -7.3 -17, -7.7 -19.9, -7.3 -21.2 C -6.8 -22.5, -4.4 -24.3, -2.9 -25 C -1.3 -25.7, 2.3 -26.5, 3.7 -26.1 C 5.1 -25.7, 6.7 -23.4, 6.9 -22.1 Z M 0.2 -14.2 C 0.9 -15.2, 17.5 -26.7, 18.6 -27 C 19.6 -27.3, 22.9 -21.5, 22.1 -20.5 C 21.4 -19.5, 4.7 -8, 3.6 -7.7 C 2.5 -7.4, -0.6 -13.3, 0.2 -14.2 Z M -11.1 -3.8 C -12.1 -4.2, -23.3 -17.3, -23.7 -18.3 C -24.1 -19.2, -21 -23.5, -20 -23.1 C -19.1 -22.7, -5.1 -11.6, -4.7 -10.7 C -4.2 -9.7, -10.2 -3.4, -11.1 -3.8 Z M -0.8 12.9 C -1.1 14.4, -13.1 36, -14 37.1 C -15 38.3, -20.3 36.9, -20.1 35.4 C -19.8 33.9, -10.1 8.4, -9.1 7.3 C -8.2 6.2, -0.6 11.4, -0.8 12.9 Z M 7.1 8.7 C 8.1 9.9, 17.9 33.8, 18 35.3 C 18.2 36.8, 11.4 39.6, 10.4 38.5 C 9.4 37.3, -2.2 13.7, -2.4 12.2 C -2.6 10.7, 6.1 7.6, 7.1 8.7 Z M -18.5 -25.3 C -18.9 -22.2, -23.1 35.1, -23.2 38.3 C -23.2 41.5, -19.3 41.7, -19 38.5 C -18.6 35.3, -15.6 -22.2, -15.5 -25.4 C -15.5 -28.6, -18.2 -28.5, -18.5 -25.3 Z M 13.9 -8.7 C 15.5 -10, 26.4 -13.1, 28 -12 C 29.7 -10.8, 33.6 2, 33.7 4.6 C 33.7 7.3, 30.3 13.5, 28.6 14.2 C 27 14.9, 15.6 13.8, 14 12.8 C 12.4 11.9, 9.5 5.2, 9.5 3 C 9.5 0.9, 12.4 -7.5, 13.9 -8.7 Z M 30.5 -19.3 C 30.7 -18, 29.9 -15.5, 29 -14.4 C 28 -13.3, 25.4 -11.7, 23.8 -11.7 C 22.2 -11.6, 18.6 -12.9, 17.7 -13.9 C 16.8 -14.9, 17 -17.6, 17.6 -18.8 C 18.1 -20.1, 20.1 -22.1, 21.5 -22.8 C 22.9 -23.4, 25.9 -23.9, 27.2 -23.5 C 28.5 -23, 30.2 -20.6, 30.5 -19.3 Z M 23.7 -11.9 C 24.4 -12.9, 41.4 -25, 42.5 -25.4 C 43.5 -25.7, 46 -19.8, 45.3 -18.8 C 44.6 -17.8, 30 -5, 28.9 -4.7 C 27.8 -4.3, 23 -10.8, 23.7 -11.9 Z M 12.1 -3.3 C 11.2 -3.5, 0.9 -13.8, 0.5 -14.6 C 0.1 -15.4, 3.6 -19.7, 4.5 -19.5 C 5.4 -19.2, 17.4 -10.9, 17.8 -10.1 C 18.2 -9.3, 13 -3, 12.1 -3.3 Z M 23.3 13.6 C 23.1 15.1, 11 39, 10 40.1 C 9 41.2, 3.3 37.3, 3.5 35.7 C 3.8 34.2, 13.6 10, 14.6 8.9 C 15.6 7.7, 23.6 12, 23.3 13.6 Z M 32 9.1 C 32.9 10.2, 40.3 36.2, 40.4 37.8 C 40.5 39.3, 35.3 40.5, 34.4 39.4 C 33.5 38.2, 22.6 15.7, 22.4 14.2 C 22.3 12.7, 31.1 7.9, 32 9.1 Z M 4.3 -24.9 C 3.8 -21.7, 0.1 35.7, 0.1 39 C 0.2 42.2, 5.2 43.1, 5.6 39.9 C 6.1 36.7, 8.8 -21.5, 8.7 -24.7 C 8.7 -28, 4.7 -28, 4.3 -24.9 Z"/>
+      </g>
+      </g>
+    </svg>
+        </div>
+      </div>
+
+      <!-- Scan + grain. Its own element so the grain can be a BLUE ink laid
+           through a mask while the scan ruling stays a clean line under it —
+           one element could not do both. It stops short of the standing line
+           at the foot, which is left untouched. -->
+      <div class="hero-scan" aria-hidden="true"></div>
+
+      <!-- Large standing line at the foot of the opening screen -->
+      <div class="hero-edition-line">
+        <!-- Pink dots riding inside the standing line: a tight offset stack
+             through the middle that opens out to the right and resolves into
+             a single circle by the far end. -->
+        <div class="edition-dots" aria-hidden="true">
+        <span class="edition-dot edition-dot-one" style="left:3.0%;--dy:0px"></span>
+        <span class="edition-dot" style="left:12.5%;--dy:4.2px"></span>
+        <span class="edition-dot" style="left:19.7%;--dy:6.4px"></span>
+        <span class="edition-dot" style="left:25.4%;--dy:5.6px"></span>
+        <span class="edition-dot" style="left:29.9%;--dy:2.2px"></span>
+        <span class="edition-dot" style="left:33.7%;--dy:-2.3px"></span>
+        <span class="edition-dot" style="left:37.0%;--dy:-5.7px"></span>
+        <span class="edition-dot" style="left:40.0%;--dy:-6.4px"></span>
+        <span class="edition-dot" style="left:42.7%;--dy:-4.1px"></span>
+        <span class="edition-dot" style="left:45.2%;--dy:0.1px"></span>
+        <span class="edition-dot" style="left:47.6%;--dy:4.3px"></span>
+        <span class="edition-dot" style="left:49.9%;--dy:6.4px"></span>
+        <span class="edition-dot" style="left:52.3%;--dy:5.6px"></span>
+        <span class="edition-dot" style="left:54.7%;--dy:2.1px"></span>
+        <span class="edition-dot" style="left:57.2%;--dy:-2.4px"></span>
+        <span class="edition-dot" style="left:59.8%;--dy:-5.7px"></span>
+        <span class="edition-dot" style="left:62.6%;--dy:-6.4px"></span>
+        <span class="edition-dot" style="left:65.7%;--dy:-4.0px"></span>
+        <span class="edition-dot" style="left:69.2%;--dy:0.2px"></span>
+        <span class="edition-dot" style="left:73.2%;--dy:4.4px"></span>
+        <span class="edition-dot" style="left:77.9%;--dy:6.4px"></span>
+        <span class="edition-dot" style="left:83.4%;--dy:5.5px"></span>
+        <span class="edition-dot edition-dot-one" style="left:90.2%;--dy:0px"></span>
+        </div>
+        <span class="edition-big hl-yellow">PORTFOLIO</span>
+        <span class="edition-sep" aria-hidden="true"><i style="--k:-2;--i:0"></i><i style="--k:-1;--i:1"></i><i style="--k:0;--i:2" class="sep-core"></i><i style="--k:1;--i:3"></i><i style="--k:2;--i:4"></i></span>
+        <span class="edition-big edition-thin hl-yellow">online edition</span>
+        <span class="edition-sep" aria-hidden="true"><i style="--k:-2;--i:0"></i><i style="--k:-1;--i:1"></i><i style="--k:0;--i:2" class="sep-core"></i><i style="--k:1;--i:3"></i><i style="--k:2;--i:4"></i></span>
+        <span class="edition-big hl-yellow">2026</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- 1. TOP MAIN SHOWREEL VIDEO SECTION (PLATE 01) -->
+  <section class="hero-stage poster-section-plate" id="showreel">
+    <div class="stage-container">
+      <!-- The reel is flanked by its own label and year, held to the page
+           edges. The video is capped short of them so they always have
+           ground to stand on. -->
+      <span class="reel-edge-label reel-edge-left">SHOWREEL</span>
+      <span class="reel-edge-label reel-edge-right">2026</span>
+
+      <div class="showreel-wrapper" id="showreel-wrapper">
+        <div class="video-container poster-video-frame">
+          <!-- The frame is exactly the size of the video, so the sound icon
+               can sit on the video's own corner. -->
+          <div class="reel-frame">
+            <video id="main-showreel" class="main-video" muted loop playsinline webkit-playsinline preload="metadata" poster="esset/thumbs/showreel.jpg">
+              <source src="esset/showreel.mp4" type="video/mp4">
+              Your browser does not support video tag.
+            </video>
+            <!-- Sound toggle: a speaker with waves when on, struck through when
+                 muted. No text. -->
+            <button type="button" id="mute-btn" class="reel-sound is-muted" aria-label="Sound" aria-pressed="false">
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path class="spk" d="M2.5 6h2.6L8.6 3.2v9.6L5.1 10H2.5z"/>
+                <path class="waves" d="M10.6 5.6a3.2 3.2 0 0 1 0 4.8M12.4 3.8a5.8 5.8 0 0 1 0 8.4"/>
+                <path class="slash" d="M10.8 6.2l3.6 3.6M14.4 6.2l-3.6 3.6"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Overlay caption and buttons removed at request; the file input is
+               kept so a showreel can still be swapped programmatically. -->
+          <input type="file" id="user-video-input" accept="video/*" style="display: none;">
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 2. CONTINUOUS POSTER PORTFOLIO SECTION -->
+  <section class="portfolio-grid-section poster-portfolio-section" id="portfolio-grid">
+    <div class="section-header poster-section-header">
+      <div class="catalog-controls">
+        <span class="grid-count poster-grid-count" id="grid-count">Showing Projects</span>
+      </div>
+    </div>
+
+    <!-- Two rows on a rail that runs sideways. The wheel drives it
+         horizontally; only once the rail is back at its start does a further
+         pull hand control back to the stage machine. -->
+    <div class="works-rail" id="works-rail">
+      <div class="projects-grid works-rail-track" id="projects-grid">
+        <!-- Dynamic Project Cards rendered via app.js -->
+      </div>
+    </div>
+
+    <!-- Every work named in full, under the rail it belongs to. -->
+    <div class="works-index" id="works-index"></div>
+
+    <!-- The hovered work's line, running under the rail. -->
+    <div class="works-marquee" id="works-marquee" aria-hidden="true">
+      <div class="works-marquee-track" id="works-marquee-track"></div>
+    </div>
+  </section>
+
+  <!-- CV — a page of the site, set like a studio's information page: one
+       fixed bar across the top, a large statement on the left with a work
+       under it, and the particulars in two narrow columns on the right.
+       Black ground, the site's yellow ink, blue for dates. Not the PDF. -->
+  <div class="cv-page" id="cv-modal">
+    <nav class="cv-bar">
+      <span class="cv-bar-name">Michal Gurevich</span>
+      <span class="cv-bar-tabs">
+        <button type="button" class="cv-bar-tab" id="cv-back-projects">Projects</button>
+        <span class="cv-bar-slash">/</span>
+        <span class="cv-bar-tab is-active">CV</span>
+      </span>
+      <button type="button" class="cv-bar-close" id="cv-modal-close-btn" title="Close">Close &times;</button>
+    </nav>
+
+    <div class="cv-page-inner" id="cv-modal-body">
+      <div class="cv-main">
+        <p class="cv-statement">
+          Michal Gurevich is a motion and visual designer based in Tel Aviv,
+          a Visual Communication graduate of Bezalel Academy working in
+          motion, typography and visual systems. She builds structured
+          visual identities across digital and physical formats, making
+          complex ideas clear and accessible, and brings concepts to life
+          from early styleframes to final execution.
+        </p>
+        <figure class="cv-plate">
+          <img src="esset/michal_portrait.jpg" alt="Michal Gurevich" loading="lazy">
+        </figure>
+      </div>
+
+      <aside class="cv-side">
+        <div class="cv-col">
+          <section class="cv-block">
+            <h2 class="cv-label">Contact</h2>
+            <p class="cv-item">For any request<br>
+              <a href="mailto:mihalg199@gmail.com">mihalg199@gmail.com</a><br>
+              <a href="tel:+972546563165">054-6563165</a></p>
+            <p class="cv-item">Based in<br>Tel Aviv, Israel</p>
+          </section>
+
+          <section class="cv-block">
+            <h2 class="cv-label">Education</h2>
+            <p class="cv-item"><span class="cv-when">2022—2026</span><br>
+              Bezalel Academy of Arts and Design<br>
+              B.Des in Visual Communication. Focus: Motion Design &amp;
+              Screen-Based Interfaces</p>
+            <p class="cv-item"><span class="cv-when">2018—2019</span><br>
+              Military Service &amp; Achva Academic College<br>
+              Education and command courses. Mechina &ldquo;Telem&rdquo;
+              pre-military leadership academy</p>
+            <p class="cv-item"><span class="cv-when">2014—2017</span><br>
+              High School for the Arts, Jerusalem<br>
+              Full matriculation (Bagrut) in Fine Arts and Russian</p>
+          </section>
+        </div>
+
+        <div class="cv-col">
+          <section class="cv-block">
+            <h2 class="cv-label">Experience</h2>
+            <p class="cv-item"><span class="cv-when">2023—now</span><br>Freelance</p>
+            <p class="cv-item">Film<br>Motion &amp; UI, title sequences, credits and
+              official posters for two Israeli short films</p>
+            <p class="cv-item">Events &amp; nightlife<br>&ldquo;Yofi&rdquo; Tel Aviv,
+              &ldquo;Melisande&rdquo; Jerusalem, music tours and independent
+              party productions</p>
+            <p class="cv-item">Venues<br>&ldquo;Forte&rdquo; wine bar and other
+              independent venues</p>
+            <p class="cv-item">Exhibitions<br>&ldquo;Hamifaal&rdquo;, in
+              collaboration with Bezalel</p>
+          </section>
+
+          <section class="cv-block">
+            <h2 class="cv-label">Software</h2>
+            <p class="cv-item">After Effects, Premiere Pro, DaVinci Resolve,
+              Figma, Photoshop, Illustrator, InDesign, Blender 3D</p>
+          </section>
+
+          <section class="cv-block">
+            <h2 class="cv-label">Skills</h2>
+            <p class="cv-item">Illustration &amp; fine art, tattoo artist,
+              analog &amp; digital drawing, riso printing</p>
+          </section>
+
+          <section class="cv-block">
+            <h2 class="cv-label">Languages</h2>
+            <p class="cv-item">Hebrew, English, Russian — fluent</p>
+          </section>
+        </div>
+
+        <section class="cv-block cv-info">
+          <h2 class="cv-label">Info</h2>
+          <p>Since 2023 Michal has worked freelance. For film, she designed
+            and animated digital interface simulations (spyware and live chat
+            platforms), full motion graphic packages (title sequences,
+            credits) and official posters for two Israeli short films. For
+            music tours, cultural events and nightlife brands she makes
+            dynamic posters, motion graphics and social media branding. For
+            independent venues and art exhibitions she builds visual
+            languages, logos, menus and exhibition catalogues. Her Bezalel
+            capstone project was a 4.5-minute 3D animated short film,
+            directed in Blender.</p>
+        </section>
+      </aside>
+    </div>
+  </div>
+
+  <!-- INFO MODAL -->
+  <div class="modal-overlay" id="info-modal">
+    <div class="modal-card" style="max-width: 650px; background: #000000; color: #ffffff;">
+      <button class="modal-close" id="info-modal-close-btn" title="Close Modal">&times;</button>
+      
+      <div class="modal-header" style="border-bottom: 1px solid #222;">
+        <span class="modal-category" style="color: #ff2a4b;">BIOGRAPHY & BACKGROUND</span>
+        <h2 class="modal-title" style="color: #ffffff;">ABOUT MIHAL GUREVICH</h2>
+      </div>
+
+      <div class="modal-body" style="padding-top: 1rem;">
+        <p class="bio-lead" style="font-family: var(--font-primary); font-size: 1.05rem; line-height: 1.6; color: #cccccc; margin-bottom: 1.5rem;">
+          Motion & 3D Designer and Bezalel graduate specializing in 3D animation and motion graphics. Skilled in Blender, After Effects, and Adobe Creative Cloud, with a focus on typography, color, and composition. Experienced in bringing projects from initial concept and storyboards to final motion.
+        </p>
+
+        <h4 style="font-family: var(--font-mono); font-size: 0.9rem; color: #ff2a4b; text-transform: uppercase; margin-bottom: 0.8rem;">CORE SKILLS & TOOLS</h4>
+        <ul style="font-family: var(--font-mono); font-size: 0.85rem; color: #aaaaaa; line-height: 1.8; list-style-type: square; padding-left: 1.2rem;">
+          <li>3D Animation & Modeling (Blender, Cinema 4D)</li>
+          <li>Motion Graphics & Compositing (After Effects, Premiere)</li>
+          <li>Typography, Layout & Color Theory</li>
+          <li>Brand Identity Systems & Editorial Packaging</li>
+          <li>Physical Art Direction & Event Spatial Production</li>
+          <li>Storyboarding & Concept Development</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTACT MODAL -->
+  <div class="modal-overlay" id="contact-modal">
+    <div class="modal-card" style="max-width: 550px; background: #000000; color: #ffffff;">
+      <button class="modal-close" id="contact-modal-close-btn" title="Close Modal">&times;</button>
+      
+      <div class="modal-header" style="border-bottom: 1px solid #222;">
+        <span class="modal-category" style="color: #ff2a4b;">GET IN TOUCH</span>
+        <h2 class="modal-title" style="color: #ffffff;">INQUIRIES & COMMISSIONS</h2>
+      </div>
+
+      <div class="modal-body" style="padding-top: 1rem;">
+        <form class="contact-form" id="modal-contact-form">
+          <div class="form-group">
+            <label for="modal-contact-name" style="color: #888888; font-family: var(--font-mono); font-size: 0.75rem;">NAME</label>
+            <input type="text" id="modal-contact-name" placeholder="Your Name" required style="background: #111; color: #fff; border: 1px solid #333 !important; padding: 0.6rem;">
+          </div>
+          <div class="form-group">
+            <label for="modal-contact-email" style="color: #888888; font-family: var(--font-mono); font-size: 0.75rem;">EMAIL</label>
+            <input type="email" id="modal-contact-email" placeholder="your@email.com" required style="background: #111; color: #fff; border: 1px solid #333 !important; padding: 0.6rem;">
+          </div>
+          <div class="form-group">
+            <label for="modal-contact-message" style="color: #888888; font-family: var(--font-mono); font-size: 0.75rem;">MESSAGE</label>
+            <textarea id="modal-contact-message" rows="3" placeholder="Tell me about your project..." required style="background: #111; color: #fff; border: 1px solid #333 !important; padding: 0.6rem;"></textarea>
+          </div>
+          <button type="submit" class="submit-btn" style="background: #ff2a4b; color: #ffffff; padding: 0.7rem; font-family: var(--font-mono); font-weight: 700; width: 100%; margin-top: 0.5rem; cursor: pointer;">SEND MESSAGE</button>
+        </form>
+        <div class="direct-contact" style="margin-top: 1.5rem; font-family: var(--font-mono); font-size: 0.8rem; color: #888888;">
+          <p style="margin-bottom: 0.3rem;"><strong style="color:#fff;">DIRECT EMAIL:</strong> mihal.gurevich@design.com</p>
+          <p><strong style="color:#fff;">LOCATION:</strong> Jerusalem / Tel Aviv, Israel</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. LIGHTNING FAST PROJECT DETAILS MODAL -->
+  <div class="modal-overlay" id="project-modal">
+    <!-- YELLOW NAVIGATION ARROWS WITH TINY SPATIAL INDICATOR ARROWS ABOVE & BELOW -->
+    <div class="modal-arrows-side" id="modal-arrows-side">
+      <!-- TINY ARROWS INDICATING REMAINING PROJECTS ABOVE CURRENT POSITION -->
+      <div class="tiny-arrows-indicator tiny-arrows-above" id="tiny-arrows-above"></div>
+
+      <button class="project-nav-btn prev-project-btn" id="modal-prev-project-btn" title="Previous Project">
+        <div class="yellow-arrow-circle">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#D4FF00" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="19" x2="12" y2="5"></line>
+            <polyline points="5 12 12 5 19 12"></polyline>
+          </svg>
+        </div>
+      </button>
+
+      <button class="project-nav-btn next-project-btn" id="modal-next-project-btn" title="Next Project">
+        <div class="yellow-arrow-circle">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#D4FF00" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <polyline points="19 12 12 19 5 12"></polyline>
+          </svg>
+        </div>
+      </button>
+
+      <!-- TINY ARROWS INDICATING REMAINING PROJECTS BELOW CURRENT POSITION -->
+      <div class="tiny-arrows-indicator tiny-arrows-below" id="tiny-arrows-below"></div>
+    </div>
+
+    <div class="modal-card">
+      <div class="modal-split-container">
+        <!-- LEFT SIDE TYPOGRAPHY SIDEBAR (BOTTOM FLUSH WITH VIDEO BOTTOM EDGE) -->
+        <div class="modal-caption-left" id="modal-caption-left">
+          <!-- Dynamic Logo & Typography -->
+        </div>
+
+        <!-- RIGHT SIDE MEDIA COLUMN -->
+        <div class="modal-media-column">
+          <div class="modal-top-right-meta" id="modal-top-right-meta">
+            <div>YEAR: 2026</div>
+            <div style="opacity: 0.85; margin-top: 0.2rem;">MEDIUM: MOTION & SCREEN GRAPHICS</div>
+          </div>
+
+          <div class="modal-media-wrapper-relative">
+            <div class="modal-media" id="modal-media-wrapper">
+              <!-- Dynamic Video or Image -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. CARD EDITOR MODAL (DISK PERSISTENCE) -->
+  <div class="modal-overlay" id="card-editor-modal">
+    <div class="modal-card" style="max-width: 850px; max-height: 88vh; overflow-y: auto !important; -webkit-overflow-scrolling: touch; padding-bottom: 1rem;">
+      <button class="modal-close" id="card-editor-close-btn" title="Close Modal">&times;</button>
+      
+      <div class="modal-header">
+        <span class="modal-category">PORTFOLIO DISK PERSISTENCE ENGINE</span>
+        <h2 class="modal-title">Edit Project Details & Media</h2>
+        <p class="modal-subtitle">Fill in project details, description, cover picture, and hover motion videos. All changes save permanently.</p>
+      </div>
+
+      <form class="contact-form" id="card-editor-form" style="margin-top: 1rem;">
+        <input type="hidden" id="edit-project-id">
+
+        <div class="editor-fields-grid">
+          <div class="form-group span-2">
+            <label for="edit-title">PROJECT TITLE</label>
+            <input type="text" id="edit-title" placeholder="e.g. Yoffi party line — Visual Identity System">
+          </div>
+
+          <div class="form-group">
+            <label for="edit-category">CATEGORY</label>
+            <select id="edit-category">
+              <option value="motion">Motion & Screen Graphics</option>
+              <option value="branding">Branding & Typography</option>
+              <option value="art-direction">Art Direction & Visual Projects</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="edit-year">YEAR</label>
+            <input type="text" id="edit-year" placeholder="2026">
+          </div>
+
+          <div class="form-group">
+            <label for="edit-client">CLIENT / VENUE</label>
+            <input type="text" id="edit-client" placeholder="e.g. Shaon Horef Festival / Mona">
+          </div>
+
+          <div class="form-group">
+            <label for="edit-role">ROLE</label>
+            <input type="text" id="edit-role" placeholder="e.g. Motion & 3D Lead">
+          </div>
+
+          <div class="form-group span-2">
+            <label for="edit-toolkit">TOOLS USED</label>
+            <input type="text" id="edit-toolkit" placeholder="e.g. Blender, After Effects, Photoshop">
+          </div>
+
+          <div class="form-group span-2">
+            <label for="edit-desc">DESCRIPTION</label>
+            <textarea id="edit-desc" rows="4" placeholder="Project description..."></textarea>
+          </div>
+
+          <!-- FILE AUTO-UPLOAD HOOKS & DRAG-AND-DROP ZONE -->
+          <div class="form-group span-2 drop-zone-box" id="modal-drag-drop-zone">
+            <div style="font-size: 1.8rem; margin-bottom: 0.3rem;">📥 📁</div>
+            <div style="font-family: var(--font-mono); font-weight: 700; font-size: 0.95rem; color: #fff;">DRAG & DROP VIDEO OR IMAGE FILE HERE FROM YOUR COMPUTER</div>
+            <div style="font-family: var(--font-mono); font-size: 0.75rem; color: #a4adcf; margin-top: 0.2rem;">Or click below to select file (.MP4, .MOV, .PNG, .JPG)</div>
+          </div>
+
+          <div class="form-group span-2" style="background: #111111; color: #fff; padding: 1rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <label style="color: #fff; font-weight: 700; font-family: var(--font-mono); font-size: 0.8rem;">🎥 MOTION VIDEO FILE (.MP4 / .MOV)</label>
+              <button type="button" id="clear-video-btn" style="background: #ef4444; color: #fff; border: none; border-radius: 4px; padding: 0.2rem 0.6rem; font-size: 0.72rem; font-weight: 700; cursor: pointer;">🗑️ Clear Video</button>
+            </div>
+            <input type="file" id="modal-file-video" accept="video/*" style="background:#1e1e1e; color:#fff; padding: 0.4rem; border-radius: 4px; margin-top: 0.3rem; width: 100%;">
+            <input type="text" id="edit-project-video-url" placeholder="Or enter video URL (e.g. esset/my_motion.mp4)" style="margin-top:0.4rem; width: 100%;">
+          </div>
+
+          <div class="form-group span-2" style="background: #111111; color: #fff; padding: 1rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <label style="color: #fff; font-weight: 700; font-family: var(--font-mono); font-size: 0.8rem;">📷 STATIC COVER IMAGE FILE (.JPG / .PNG)</label>
+              <button type="button" id="clear-image-btn" style="background: #ef4444; color: #fff; border: none; border-radius: 4px; padding: 0.2rem 0.6rem; font-size: 0.72rem; font-weight: 700; cursor: pointer;">🗑️ Clear Image</button>
+            </div>
+            <input type="file" id="modal-file-image" accept="image/*" style="background:#1e1e1e; color:#fff; padding: 0.4rem; border-radius: 4px; margin-top: 0.3rem; width: 100%;">
+            <input type="text" id="edit-project-asset-url" placeholder="Or enter image URL (e.g. esset/my_cover.jpg)" style="margin-top:0.4rem; width: 100%;">
+          </div>
+
+          <div class="form-group span-2" style="background: #111111; color: #fff; padding: 1rem; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.2);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <label style="color: #60a5fa; font-weight: 800; font-family: var(--font-mono); font-size: 0.85rem;">🎬 MULTI-ANIMATION & GALLERY (העלאת מספר אנימציות וסרטונים לפרויקט)</label>
+              <button type="button" id="clear-gallery-btn" style="background: #ef4444; color: #fff; border: none; border-radius: 4px; padding: 0.2rem 0.6rem; font-size: 0.72rem; font-weight: 700; cursor: pointer;">🗑️ Clear Gallery</button>
+            </div>
+            <input type="file" id="modal-file-gallery" accept="image/*,video/*" multiple style="background:#1e1e1e; color:#fff; padding: 0.5rem; border-radius: 4px; margin-top: 0.4rem; width: 100%;">
+            <textarea id="edit-gallery-urls" rows="2" placeholder="Or enter multiple comma-separated media paths (e.g. esset/anim1.mp4, esset/anim2.mp4, esset/anim3.mp4)" style="margin-top:0.4rem; width: 100%; font-size:0.85rem; background:#1e1e1e; color:#fff; border-radius:4px; border:1px solid rgba(255,255,255,0.15);"></textarea>
+            <div style="font-size:0.75rem; color:#94a3b8; margin-top:0.3rem;">* האנימציה הראשונה מתנגנת בתצוגה המקדימה בעמוד הבית. בלחיצה וכניסה לפרויקט ניתן לגלול בין כל האנימציות והסרטונים אחת אחרי השנייה!</div>
+          </div>
+        </div>
+
+        <!-- STICKY BOTTOM SAVE ACTION BAR -->
+        <div style="position: sticky; bottom: 0; background: #0a0a0a; padding: 1rem 0; margin-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.15); display: flex; gap: 1rem; justify-content: flex-end; z-index: 100;">
+          <button type="button" class="submit-btn danger-btn" id="delete-current-project-btn" style="background:#ef4444; color:#fff;">DELETE</button>
+          <button type="button" class="submit-btn" id="card-editor-cancel-btn">CANCEL</button>
+          <button type="button" class="submit-btn primary-save" id="save-card-submit-btn" style="background:#10b981; color:#fff; font-weight: 800;">SAVE PERMANENTLY</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast" id="toast-notification">Notification</div>
+
+  <!-- FLOATING MULTI-ACTION SELECTION BAR -->
+  <div class="floating-selection-bar" id="floating-selection-bar">
+    <span>נבחרו <strong id="selected-projects-count">0</strong> פרויקטים</span>
+    <button type="button" class="floating-selection-btn" id="floating-merge-btn">📥 הכנס לתוך פרויקט...</button>
+    <button type="button" class="floating-selection-btn secondary" id="floating-clear-btn">❌ בטל בחירה</button>
+  </div>
+
+  <!-- PROJECT PICKER MODAL (MERGE INTO PROJECT) -->
+  <div class="project-picker-overlay" id="project-picker-overlay">
+    <div class="project-picker-card">
+      <div class="project-picker-header">
+        <div class="project-picker-title" id="project-picker-title">בחר פרויקטים להוספה</div>
+        <button type="button" class="project-picker-close" id="project-picker-close-btn">&times;</button>
+      </div>
+      <div class="project-picker-list" id="project-picker-list">
+        <!-- Dynamically rendered project items -->
+      </div>
+      <div class="project-picker-footer">
+        <label class="project-picker-checkbox-label" id="project-picker-remove-label">
+          <input type="checkbox" id="project-picker-remove-checkbox" checked>
+          <span>הסר את הפרויקטים שנבחרו מהעמוד הראשי (העברה מלאה)</span>
+        </label>
+        <div class="project-picker-actions">
+          <button type="button" class="floating-selection-btn secondary" id="project-picker-cancel-btn">ביטול</button>
+          <button type="button" class="floating-selection-btn" id="project-picker-submit-btn">📥 הכנס פנימה</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js?v=20261006_d"></script>
+</body>
+</html>

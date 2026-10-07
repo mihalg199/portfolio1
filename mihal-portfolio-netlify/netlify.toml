@@ -1,0 +1,4 @@
+# Static site: no build step, the folder itself is published.
+[build]
+  publish = "."
+  command = ""

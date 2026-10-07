@@ -1,0 +1,5614 @@
+/* ==========================================================================
+   MIHAL GUREVICH — CONTINUOUS EDITORIAL POSTER SCROLL
+   Inspired by "FESTIVAL MV" & "BIO-MAP" (Vanzyst & Atelier Tout Va Bien)
+   Faceted 8-Bit Chamfered Typography, Condensed Grotesque & Vibrant Poster Ink
+   ========================================================================== */
+
+:root {
+  /* POSTER TYPOGRAPHY SYSTEM */
+  /* Helvetica throughout. Every font-family in this stylesheet goes through
+     one of these four tokens, so the whole site changes face here and
+     nowhere else. The four names are kept because hundreds of rules still
+     reach for them by role — they simply all resolve to the same grotesque
+     now, which is what the HFBK grid does too. */
+  --font-helvetica: 'Helvetica Neue', Helvetica, Arial, 'Liberation Sans', sans-serif;
+  --font-poster-display: var(--font-helvetica);
+  --font-poster-condensed: var(--font-helvetica);
+  --font-primary: var(--font-helvetica);
+  --font-mono: var(--font-helvetica);
+
+  /* VIBRANT POSTER PRINT PALETTE (Directly from User References) */
+  --c-flame-orange: #ff4800;   /* Festival MV Orange / Bio-Map Vermilion */
+  --c-hot-pink: #ff1e88;       /* Festival MV Fluorescent Magenta Pink */
+  --c-electric-blue: #0091ff;  /* Festival MV Vivid Sky Azure */
+  --c-pixel-green: #00c853;    /* Bio-Map 8-Bit Pixel Green */
+  --c-emerald: #00be74;        /* Festival MV Jade Emerald */
+  --c-acid: #D4FF00;           /* Acid / Lemon Yellow (La Nuit du Cirque & Festival MV) */
+  --c-pure-white: #ffffff;
+  --c-ink-black: #08080a;      /* Deep Ink Black */
+  --c-paper-cream: #f5efe6;    /* Bio-Map Tactile Canvas */
+
+  /* DEFAULT CANVAS: DARK POSTER INK */
+  --bg-main: #2E2A20;   /* warm dark brown ground, not pure black */
+  --bg-card: #262319;
+  --text-main: #ffffff;
+  --text-muted: #8e9bb0;
+  --border-poster: #222228;
+  --border-poster-light: #18181c;
+  --poster-mark-color: rgba(255, 255, 255, 0.45);
+  --poster-line-color: rgba(255, 255, 255, 0.95);
+  --swatch-border: rgba(255, 255, 255, 0.25);
+
+  /* MASTER CONTAINER WIDTH — change this one value to resize the whole poster column */
+  --poster-max-width: 1160px;
+  /* Panel travel. 1.8s left the page dead under your hand for nearly two
+     seconds after every flick, which is what made moving between the
+     sections feel clumsy. Shorter, and the curve lands soft instead of
+     arriving at full speed. */
+  --panel-travel: 950ms;
+  /* answers at once, then settles: the old curve spent its first third
+     barely moving, so a scroll seemed to be ignored before the panel went */
+  --panel-ease: cubic-bezier(0.22, 0.75, 0.2, 1);
+  /* How far the incoming panel leans while a gesture is still building. */
+  --stage-nudge: 0px;
+  /* MASTER GRID GAP — identical spacing on every side of every project */
+  --grid-gap: calc(2.8rem + 2cm);
+}
+
+/* WARM TACTILE NEWSPRINT / LIGHT POSTER CANVAS (BIO-MAP Aesthetic) */
+body.light-poster-canvas {
+  --bg-main: #f5efe6;
+  --bg-card: #eae3d7;
+  --text-main: #08080a;
+  --text-muted: #52525c;
+  --border-poster: #111111;
+  --border-poster-light: #d6d0c4;
+  --poster-mark-color: #08080a;
+  --poster-line-color: #08080a;
+  --swatch-border: #08080a;
+  background-color: #f5efe6 !important;
+  color: #08080a !important;
+}
+
+/* Base Resets */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border-radius: 0 !important; /* STRICT 100% SHARP RECTANGULAR SHAPES */
+  outline: none;
+}
+
+html, body {
+  scroll-behavior: smooth;
+  font-family: var(--font-primary);
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+  min-height: 100vh;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* PAPER TOOTH over the whole canvas — the reference is printed stock, not a
+   flat screen fill. A CSS dot screen, deliberately not an SVG filter
+   (feTurbulence full-bleed locks up Safari on macOS). */
+body::after {
+  display: none !important;
+}
+
+body::before {
+  display: none !important;
+}
+
+/* CONTINUOUS POSTER FRAME: PRINT CROP & REGISTRATION MARKS */
+.poster-crop-mark {
+  position: fixed;
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--poster-mark-color);
+  pointer-events: none;
+  z-index: 999;
+  line-height: 1;
+}
+.poster-crop-mark.top-left { top: 0.7rem; left: 0.9rem; }
+.poster-crop-mark.top-right { top: 0.7rem; right: 0.9rem; }
+.poster-crop-mark.bottom-left { bottom: 0.7rem; left: 0.9rem; }
+.poster-crop-mark.bottom-right { bottom: 0.7rem; right: 0.9rem; }
+
+/* CONTINUOUS POSTER MASTHEAD */
+/* STAGED ENTRANCE.
+   Stage 0 is the hero alone, filling the viewport. Scrolling brings the
+   showreel up over it, and scrolling again brings the projects up as their
+   own panel. Each stage is gated by a class on <body>. */
+.poster-masthead {
+  width: 100%;
+  max-width: var(--poster-max-width);
+  margin: 0 auto;
+  padding: 0.8rem 1rem 0.3rem;
+  position: relative;
+  z-index: 100;
+  /* the hero owns the whole first screen */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Everything past the hero is held back until its stage arrives. */
+/* The works arrive the same way the reel did: a full panel riding up over
+   whatever is underneath. Because it covers the screen for good, the hero is
+   never returned to — scrolling on from the reel goes straight to the work. */
+.poster-portfolio-section {
+  position: fixed;
+  inset: 0;
+  z-index: 350;
+  background-color: var(--bg-main);
+  padding: 4.5rem 1.5rem 5rem;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  transform: translateY(100%);
+  transition: transform var(--panel-travel) var(--panel-ease);
+}
+body.stage-works .poster-portfolio-section {
+  transform: translateY(0);
+}
+.poster-meta-strip-top {
+  /* pinned to the top-right corner of the window, above every stage */
+  position: fixed;
+  top: 0.9rem;
+  right: 1.2rem;
+  z-index: 400;
+  width: auto;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding-bottom: 0;
+  font-family: var(--font-mono);
+  font-size: 0.54rem;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.meta-strip-right {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: auto; /* keep flush right now that it is the only item in the strip */
+}
+
+.reg-crosshair {
+  color: var(--c-flame-orange);
+  font-weight: 700;
+  font-size: 0.68rem;
+}
+
+.poster-spec-sep {
+  opacity: 0.4;
+}
+
+/* CMYK / REFERENCE POSTER SWATCHES */
+.poster-color-swatches {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+}
+.poster-color-swatches .swatch {
+  width: 8px;
+  height: 8px;
+  display: inline-block;
+  border: 1px solid var(--swatch-border);
+}
+.swatch-pink { background-color: var(--c-hot-pink); }
+.swatch-orange { background-color: var(--c-flame-orange); }
+.swatch-blue { background-color: var(--c-electric-blue); }
+.swatch-green { background-color: var(--c-pixel-green); }
+.swatch-white { background-color: #ffffff; }
+.swatch-black { background-color: #000000; }
+
+/* CANVAS THEME TOGGLE BUTTON */
+.poster-canvas-toggle-btn {
+  background: transparent;
+  border: 1px solid var(--border-poster);
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  font-size: 0.54rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 0.14rem 0.38rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: all 0.15s ease;
+}
+.poster-canvas-toggle-btn:hover {
+  background-color: var(--c-flame-orange);
+  color: #ffffff;
+  border-color: var(--c-flame-orange);
+}
+
+/* ==========================================================================
+   CURATED EDITORIAL POSTER GRID (Directly from Festival MV & Bio-Map References)
+   ========================================================================== */
+.poster-hero-grid-board {
+  width: 100%;
+  border: none !important;
+  background-color: transparent !important;
+  background-image: 
+    radial-gradient(circle at 50% 30%, rgba(255, 45, 146, 0.05) 0%, transparent 65%),
+    url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='3' cy='3' r='0.8' fill='%23ffffff' fill-opacity='0.08'/%3E%3Ccircle cx='11' cy='11' r='0.8' fill='%23ff5500' fill-opacity='0.06'/%3E%3C/svg%3E");
+  display: flex;
+  flex-direction: column;
+}
+
+/* ROW 1: TOP ROW — ANIMATION CENTERED, NAME BELOW */
+.poster-hero-top-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.4rem;
+  padding: 1.4rem 0.5rem 2rem;
+  border: none !important;
+  border-bottom: none !important;
+  position: relative;
+}
+
+/* NAME BELOW ANIMATION — FACETED 8-BIT CHAMFERED TYPOGRAPHY (Bio-Map & Festival MV Style) */
+.hero-name-below {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  margin-top: 0.4rem;
+  border: none !important;
+  background: transparent !important;
+}
+
+.hero-meta-tag-top {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: clamp(0.52rem, 0.65vw, 0.6rem);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--c-flame-orange);
+}
+
+.hero-meta-tag-top .tag-bracket {
+  color: var(--c-hot-pink);
+  font-weight: 700;
+}
+
+.hero-meta-tag-top .tag-dot {
+  color: var(--border-poster);
+  font-size: 0.45rem;
+}
+
+/* Set like the reference posters: one heavy chamfered line, tracked TIGHT and
+   sized large. The old version was small with 0.16em tracking and a soft drop
+   shadow — that spaced-out glow is what read as generic/templated. Poster type
+   is dense and sits flat on the field with no shadow at all. */
+.poster-hero-name-full {
+  font-family: var(--font-poster-display) !important;
+  /* In both references the wordmark is a small caption under the artwork —
+     the composition carries the poster, not the name. */
+  font-size: clamp(0.72rem, 1.15vw, 0.92rem) !important;
+  font-weight: 700 !important;
+  line-height: 1.1 !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase !important;
+  color: var(--morph-ink) !important;
+  margin: 0 !important;
+  border: none !important;
+  outline: none !important;
+  text-align: center;
+  text-shadow: none;
+  font-stretch: condensed;
+}
+
+body.light-poster-canvas .poster-hero-name-full {
+  color: #0a0a0c !important;
+  text-shadow: none;
+}
+
+.hero-meta-tag-sub {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--font-poster-condensed);
+  font-size: clamp(0.72rem, 0.88vw, 0.82rem);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.hero-meta-tag-sub .tag-sep {
+  color: var(--c-flame-orange);
+  opacity: 0.6;
+}
+
+/* CENTER STAGE: AMORPHOUS MORPHING VECTOR COMPOSITION (Festival MV & Bio-Map) */
+/* The composition is no longer a panel in the middle of the page — it is the
+   page. It fills the opening screen edge to edge and the threads run right
+   across it; the type sits on top. */
+.hero-animation-centerpiece {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: visible;
+}
+
+.hero-animation-centerpiece:hover {
+  transform: scale(1.025);
+}
+
+/* CV PANEL — opens over the site instead of downloading. */
+.cv-modal-card {
+  max-width: 900px;
+  width: 92vw;
+  height: 88vh;
+  background: #000000;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+.cv-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.9rem 1.2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+}
+.cv-modal-label { color: var(--c-flame-orange); }
+.cv-modal-download {
+  color: #ffffff;
+  text-decoration: none;
+  opacity: 0.7;
+  transition: opacity 0.15s ease;
+}
+.cv-modal-download:hover { opacity: 1; }
+.cv-modal-body {
+  flex: 1;
+  min-height: 0;
+  background: #0a0a0a;
+}
+.cv-modal-body iframe,
+.cv-modal-body embed {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+.cv-modal-fallback {
+  padding: 2rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: #cccccc;
+  line-height: 1.7;
+}
+
+/* CV — set in the poster face but loosened right off and italicised, so it
+   reads as a margin note beside the composition rather than a nav button. */
+.hero-cv-link {
+  position: absolute;
+  /* sits up near the top-right shoulder of the composition, not beside its
+     middle — it reads as a margin note rather than a label for the artwork */
+  top: 14%;
+  left: calc(100% + 1.2rem);
+  cursor: pointer;
+  background: none;
+  border: none !important;
+  padding: 0;
+  font-family: var(--font-poster-display);
+  font-size: clamp(0.78rem, 1.05vw, 0.95rem);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: var(--morph-ink);
+  text-decoration: none;
+  opacity: 0.75;
+  white-space: nowrap;
+  transition: opacity 0.2s ease, letter-spacing 0.2s ease;
+  z-index: 4;
+}
+.hero-cv-link:hover {
+  opacity: 1;
+  letter-spacing: 0.55em;
+}
+
+.hero-animation-centerpiece .poster-graphic-starburst {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+}
+
+/* 1. LOWER STEPPED ORGANIC HORIZON (Festival MV Cyan & Pixel Green) */
+/* ==========================================================================
+   SCREENPRINT VISUAL LANGUAGE
+   Matched to "Festival MV" (Atelier Tout Va Bien) & "Bio-Map" (Vanzyst).
+   The rules of the references, in order of importance:
+     1. FLAT saturated colour fields — never transparency, never gradients.
+     2. Edges are hard 8-bit staircases (the geometry already steps; we just
+        stop drawing outlines around it so the steps read as the silhouette).
+     3. Line work is ONE weight, thick, and a single ink — white on dark,
+        black on paper. No dashes, no glows, no per-element colours.
+     4. Dots are solid ink, never coloured.
+   --colour-ink flips with the canvas so both versions stay honest.
+   ========================================================================== */
+/* Palette taken from the "עדת המלאכים הגדולה" booklet rather than from the
+   festival posters: Mihal's own work is ink-on-paper with ONE saturated
+   vermilion field, not a four-colour print. Restraint is the signature. */
+:root {
+  --morph-ink: #ffffff;
+  /* Field colours are rotated per morph cycle by app.js (PALETTE_PAIRS) so the
+     composition travels through the booklet's inks — vermilion, acid yellow,
+     sepia, green — instead of sitting on one. These are the opening values. */
+  --morph-field-a: #3CB54A;
+  --morph-field-b: #F5821F;
+  --morph-field-transition: 1.1s;
+}
+body.light-poster-canvas {
+  --morph-ink: #0a0a0c;      /* brush ink on paper */
+}
+
+/* 1 + 2. THE TWO OVERLAPPING FLAT COLOUR FIELDS.
+   Solid fill, zero stroke: the stepped path IS the edge. */
+/* The colour fields stay FLAT — in both references the ink lays down solid and
+   only the paper carries tooth. Grain belongs on the line work, not here. */
+.morph-blob-under {
+  fill: var(--morph-field-b);
+  stroke: none;
+  opacity: 1;
+  transition: fill var(--morph-field-transition) ease;
+}
+
+.morph-blob-path {
+  fill: var(--morph-field-a);
+  stroke: none;
+  opacity: 1;
+  transition: fill var(--morph-field-transition) ease;
+}
+
+/* 3 + 4. RADIATING RAYS AND BOUNCING ARCHES.
+   The references are painted, not plotted: the strokes have ragged edges and
+   uneven weight. The grain mask eats into every ink edge, and the spokes are
+   drawn as slightly bowed paths (see app.js) rather than true straight lines. */
+.morph-spoke-line,
+.morph-arches-path {
+  stroke: var(--morph-ink);
+  stroke-width: 5.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  opacity: 1;
+  mask: url(#ink-grain);
+}
+
+/* Uneven weight across the fan, the way a marker loads and runs dry. */
+.morph-spoke-line:nth-child(3n)   { stroke-width: 4.2; }
+.morph-spoke-line:nth-child(4n+1) { stroke-width: 6.3; }
+.morph-spoke-line:nth-child(5n+2) { stroke-width: 4.8; }
+
+/* 5. CELLULAR CHORDS — same ink, thinner pass. */
+.morph-web-line {
+  stroke: var(--morph-ink) !important;
+  stroke-width: 2;
+  stroke-linecap: round;
+  opacity: 1;
+}
+
+/* 6. FLOWING CONTOUR — solid, never dashed. */
+.morph-ribbon-path {
+  fill: none;
+  stroke: var(--morph-ink);
+  stroke-width: 4.4;
+  stroke-linecap: round;
+  opacity: 1;
+  mask: url(#ink-grain);
+}
+
+/* 7. CENTRAL BURST CORE — the white star centre of Festival MV. */
+.morph-core-dot {
+  fill: var(--morph-ink);
+  stroke: none;
+}
+
+.morph-core-ring {
+  fill: none;
+  stroke: var(--morph-ink);
+  stroke-width: 4.4;
+  opacity: 1;
+  mask: url(#ink-grain);
+}
+
+/* The dashed third ring was pure noise against the references — drop it. */
+.morph-core-ring-outer {
+  display: none;
+}
+
+/* 8. FLOATING RINGS — outline only, same ink and weight. */
+.morph-floating-ring {
+  fill: none;
+  stroke: var(--morph-ink) !important;
+  stroke-width: 3.4;
+  opacity: 1;
+  mask: url(#ink-grain);
+}
+
+/* 9. SATELLITE NODES — the booklet's signature "pin" motif: every line runs
+   out and terminates in a small OPEN hand-drawn loop, never a solid dot. */
+.morph-satellite-dot {
+  fill: none !important;
+  stroke: var(--morph-ink) !important;
+  stroke-width: 3.2;
+  opacity: 1 !important;
+  transition: r 0.15s ease;
+  mask: url(#ink-grain);
+}
+/* Uneven loops — they were drawn, not placed. */
+.morph-satellite-dot:nth-child(3n)   { stroke-width: 2.4; }
+.morph-satellite-dot:nth-child(4n+1) { stroke-width: 4.0; }
+
+/* 10. SCATTERED STIPPLE — small solid ink specks on the field. */
+.morph-stipple-group circle {
+  fill: var(--morph-ink) !important;
+  stroke: none !important;
+  opacity: 1 !important;
+}
+
+/* RISO HALFTONE / NEWSPRINT TOOTH.
+   A CSS dot screen — deliberately NOT an SVG filter: feTurbulence over a
+   full-bleed element locks up Safari on macOS. */
+/* The halftone ring around the animation is gone — it read as a dotted
+   box floating behind the artwork. */
+
+/* ROW 2: 3-COLUMN DISCIPLINE STRIP */
+.poster-hero-mid-strip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.65rem 0.5rem;
+  border-top: 1.5px solid var(--border-poster);
+  border-bottom: 1.5px solid var(--border-poster);
+  border-left: none !important;
+  border-right: none !important;
+  background-color: transparent !important;
+  font-family: var(--font-poster-condensed);
+  font-size: clamp(0.85rem, 1.15vw, 1rem);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.mid-col {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.mid-col-num {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--c-flame-orange);
+  font-weight: 700;
+}
+
+.mid-col-label {
+  color: var(--text-main);
+}
+
+.mid-col-bullet {
+  color: var(--c-hot-pink);
+  font-size: 0.75rem;
+}
+
+/* ROW 3: BIO-MAP EDITORIAL SPECIFICATIONS BLOCK */
+.poster-hero-bottom-specs {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0.65rem 1.4rem;
+  font-family: var(--font-mono);
+}
+
+.specs-block-left {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.specs-badge-orange {
+  background-color: var(--c-flame-orange);
+  color: #ffffff;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 0.2rem 0.55rem;
+  text-transform: uppercase;
+}
+
+body.light-poster-canvas .specs-badge-orange {
+  background-color: #000000;
+  color: #ffffff;
+}
+
+.specs-mini-meta {
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.specs-block-center {
+  min-width: 0;
+}
+
+.specs-statement {
+  font-size: 0.65rem;
+  line-height: 1.35;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.specs-block-right {
+  display: flex;
+  align-items: center;
+}
+
+.specs-arrow-box {
+  width: 32px;
+  height: 32px;
+  border: 1.5px solid var(--border-poster);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--c-flame-orange);
+  font-family: var(--font-poster-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.specs-arrow-box:hover {
+  background-color: var(--c-flame-orange);
+  color: #ffffff;
+  border-color: var(--c-flame-orange);
+}
+
+/* RESPONSIVE HERO GRID BOARD */
+@media (max-width: 900px) {
+  .poster-hero-top-row {
+    gap: 0.7rem;
+    padding: 1.2rem 0.5rem 1rem;
+  }
+  .hero-animation-centerpiece {
+    width: 280px;
+    height: 148px;
+    margin: 0 auto;
+  }
+  .poster-hero-mid-strip {
+    flex-direction: column;
+    gap: 0.4rem;
+    text-align: center;
+  }
+  .mid-col-bullet {
+    display: none;
+  }
+  .poster-hero-bottom-specs {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+    text-align: center;
+  }
+  .specs-block-left,
+  .specs-block-right {
+    justify-content: center;
+  }
+}
+
+/* HERO SHOWREEL SECTION (PLATE 01) */
+/* SHOWREEL REVEAL.
+   At rest the reel is out of sight below the fold; it rises into place as the
+   page is scrolled and spreads the full width of the viewport, so there is no
+   black margin framing it on the way up. */
+/* The reel is a panel that travels UP over the hero and covers it, rather
+   than a block that pushes the page down. It waits just below the fold. */
+.hero-stage.poster-section-plate {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+  /* The reel stands on the same ground as the hero above it: the black of the
+     masthead, with its light sitting off to the left, rather than a tan band
+     of its own. Same gradient, same values, so scrolling from the hero into
+     the reel does not cross a seam. */
+  background-color: #08090A;
+  background-image: radial-gradient(96% 84% at 26% 64%, #17181A 0%, #0C0D0E 58%, #070708 100%);
+  padding: 0;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 300;
+  transform: translateY(100%);
+  /* slow to start, then gathers speed — and it settles rather than stopping
+     dead. Each panel travels the same way. */
+  transition: transform var(--panel-travel) var(--panel-ease);
+}
+.hero-stage.poster-section-plate.reel-revealed {
+  transform: translateY(0);
+}
+
+/* Full-bleed: ignore the poster column so the reel touches both edges. */
+.showreel-wrapper {
+  width: 100vw;
+  max-width: 100vw;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  box-shadow: none !important;
+}
+
+/* The reel takes over the screen, but the VIDEO keeps its own proportions —
+   it is not cropped. The band simply runs out to both edges of the site
+   instead of stopping at a column, and it carries the tan of the forms
+   rather than black, so the reel sits inside the poster instead of
+   punching a hole in it.
+   The band is exactly as tall as the video, so nothing is cut off the top or
+   bottom; its width runs the full viewport, so the tan falls only to the
+   left and right and bleeds off both edges of the site. */
+.video-container.poster-video-frame {
+  position: relative;
+  width: 100vw;
+  height: auto;
+  aspect-ratio: auto;
+  /* Transparent, not black: the plate's gradient carries straight through
+     the band so there is no rectangle of flat colour around the video. */
+  background-color: transparent;
+  margin: 0;
+  overflow: hidden;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.main-video {
+  width: 100%;
+  height: auto;
+  /* Held short of the page edges so the label and the year always have
+     ground to sit on and never ride over the reel. Pinned to the column
+     alone, the video ran edge to edge on an ordinary laptop and there was
+     nowhere to put them. The gutter is sized to the labels, which are small
+     now, so the reel keeps nearly all of its width. */
+  max-width: min(var(--poster-max-width), calc(100vw - 15.5rem));
+  max-height: 88vh;
+  object-fit: contain;
+  display: block;
+}
+
+.poster-btn-action {
+  font-family: var(--font-mono) !important;
+  font-size: 0.54rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  background: rgba(0, 0, 0, 0.75) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 0 !important;
+  padding: 0.16rem 0.42rem !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+}
+.poster-btn-action:hover {
+  background-color: var(--c-hot-pink) !important;
+  color: #ffffff !important;
+  border-color: var(--c-hot-pink) !important;
+}
+
+.poster-nav-item {
+  font-family: var(--font-poster-display) !important;
+  font-weight: 700 !important;
+  font-size: 0.62rem !important;
+  letter-spacing: 0.08em !important;
+  color: var(--c-flame-orange) !important;
+  text-transform: uppercase !important;
+  text-decoration: none !important;
+  transition: color 0.15s ease, transform 0.15s ease !important;
+}
+.poster-nav-item:hover {
+  color: var(--c-hot-pink) !important;
+}
+.poster-nav-item.upload-link {
+  color: var(--c-acid) !important;
+}
+
+
+
+@media (max-width: 1250px) {
+}
+
+/* --------------------------------------------------------------------------
+   CONTINUOUS POSTER PORTFOLIO SECTION (2-COLUMN LOCKED GRID)
+   -------------------------------------------------------------------------- */
+.poster-portfolio-section {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* transform MUST stay in this list — the panel's rise is a transform, and an
+     later rule that redeclared `transition` without it silently knocked the
+     1.8s travel down to the 0.2s colour fade. */
+  transition: transform var(--panel-travel) var(--panel-ease),
+              background-color 0.2s ease,
+              color 0.2s ease;
+}
+
+.poster-section-header {
+  width: 100%;
+  max-width: var(--poster-max-width);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1.8rem;
+  border-bottom: 1.5px solid var(--border-poster);
+}
+
+.section-header-left {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.section-bracket {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--c-flame-orange);
+  font-weight: 700;
+}
+
+.poster-section-title {
+  font-family: var(--font-poster-display) !important;
+  font-size: clamp(0.78rem, 0.95vw, 0.88rem) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  color: var(--text-main) !important;
+  margin: 0 !important;
+}
+
+.poster-add-btn {
+  background-color: var(--c-hot-pink) !important;
+  color: #ffffff !important;
+  font-family: var(--font-poster-display) !important;
+  font-size: 0.58rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  padding: 0.22rem 0.5rem !important;
+  cursor: pointer !important;
+  border: 1px solid var(--c-hot-pink) !important;
+  margin-right: 0.5rem;
+  transition: all 0.15s ease !important;
+}
+.poster-add-btn:hover {
+  background-color: var(--c-flame-orange) !important;
+  border-color: var(--c-flame-orange) !important;
+}
+
+.poster-grid-count {
+  font-family: var(--font-mono) !important;
+  font-size: 0.55rem !important;
+  letter-spacing: 0.08em !important;
+  color: var(--text-muted) !important;
+  text-transform: uppercase !important;
+}
+
+/* MASONRY GRID.
+   Rows are 1px tall and row-gap is 0; app.js gives every card an explicit
+   `grid-row: <start> / span <height>` so the space under each card is always
+   exactly --grid-gap, no matter how tall its neighbour is. Cards therefore do
+   NOT line up in rows across the two columns — that is intentional. */
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  column-gap: var(--grid-gap);
+  row-gap: 0;
+  grid-auto-rows: 1px;
+  align-items: start;
+  width: 100%;
+  max-width: var(--poster-max-width);
+  margin: 0 auto !important;
+}
+
+.project-item.hybrid-card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  cursor: pointer;
+  background-color: transparent;
+  transition: transform 0.15s ease;
+  text-align: start;
+}
+
+.project-item.hybrid-card:hover {
+  transform: translateY(-3px);
+}
+
+/* MEDIA CONTAINER (DYNAMIC FULL ASPECT RATIO — VERTICAL & HORIZONTAL) */
+.media-container {
+  position: relative;
+  width: 100%;
+  margin: 0 auto !important;
+  min-height: 180px;
+  background-color: #000000;
+  overflow: hidden;
+  isolation: isolate;
+  z-index: 20;
+  padding: 0 !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  transition: none;
+}
+
+.project-item.hybrid-card:hover .media-container {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* SYMMETRICALLY BALANCED VERTICAL POSTERS */
+.media-container.vertical-media {
+  width: 100%;
+  aspect-ratio: 9 / 16 !important;
+  margin: 0 auto !important;
+}
+
+.project-item.vertical-card {
+  width: 100%;
+  margin: 0 auto !important;
+}
+
+.media-container img, .media-container video, .thumb-img, .hover-video-loop, .video-still-hover {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+  object-fit: contain !important; /* ZERO CROPPING! */
+  background-color: #000000;
+  pointer-events: none !important;
+  user-select: none !important;
+  -webkit-user-drag: none !important;
+}
+
+/* POSTER CARD CAPTION BLOCK */
+/* ~5mm of air so the caption is not welded to the bottom of the media. */
+.poster-caption-block {
+  margin-top: 5mm !important;
+  text-align: start !important;
+  width: 100%;
+}
+
+.poster-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+/* YEAR — SITS RIGHT OF THE TITLE, FLUSH WITH THE CARD'S RIGHT EDGE */
+.poster-title-year {
+  margin-inline-start: auto;
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--c-flame-orange);
+  line-height: 1.25;
+}
+
+.poster-title-heading {
+  font-family: var(--font-poster-display) !important;
+  font-size: clamp(0.74rem, 0.88vw, 0.82rem) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+  line-height: 1.25 !important;
+  color: var(--text-main) !important;
+  margin: 0 !important;
+}
+
+/* 100% EMPTY PLACEHOLDER BOX (ZERO TEXT!) */
+.asset-placeholder-box {
+  width: 100%;
+  height: 100%;
+  background-color: #080808;
+  border: 1px dashed rgba(255, 255, 255, 0.3) !important;
+  display: block;
+}
+
+/* ZERO HOVER BUTTONS OR WRITTEN BOXES OVER THE WORKS */
+.quick-edit-tile-btn,
+.inline-add-plus-btn,
+.card-select-checkbox-wrapper,
+.card-reorder-controls,
+.reorder-btn,
+.card-direct-btn,
+.card-order-controls {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* ADD NEW WORK SQUARE TILE IN GRID */
+.add-square-card {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  background-color: #111111;
+  border: 1px dashed rgba(255, 255, 255, 0.25) !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  padding: 1rem;
+  text-align: center;
+  transition: background-color 0.15s, border-color 0.15s;
+  break-inside: avoid;
+}
+
+.add-square-card:hover {
+  background-color: #1a1a1a;
+  border-color: #ff2a4b !important;
+}
+
+.add-square-icon {
+  font-size: 1.2rem;
+  margin-bottom: 0.3rem;
+  color: var(--c-flame-orange);
+}
+
+.add-square-title {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.add-square-sub {
+  font-family: var(--font-mono);
+  font-size: 0.52rem;
+  color: #888888;
+  margin-top: 0.15rem;
+}
+
+.card-reorder-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: auto;
+}
+
+.reorder-btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: currentColor;
+  padding: 0.1rem 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background-color 0.12s, color 0.12s;
+}
+
+.reorder-btn:hover {
+  background-color: #ffffff;
+  color: var(--c-black);
+}
+
+.card-direct-btn {
+  background: rgba(255, 255, 255, 0.25);
+  color: currentColor;
+  padding: 0.1rem 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background-color 0.12s, color 0.12s;
+}
+
+.card-direct-btn:hover {
+  background-color: #ffffff;
+  color: var(--c-black);
+}
+
+/* 100% PURE CLEAN MEDIA GRID ON HOMEPAGE — DESCRIPTIONS SHOWN ONLY ON CLICK IN MODAL */
+.poster-type-layout {
+  display: none !important;
+}
+
+/* CARD 1: HOT RED BLOCK — YELLOW TITLE, WHITE ROLES, COOL GREY DESC */
+.project-item:nth-child(6n+1) .poster-type-layout {
+  background-color: var(--c-red) !important;
+}
+.project-item:nth-child(6n+1) .poster-title {
+  color: var(--c-yellow) !important;
+  font-weight: 800;
+}
+.project-item:nth-child(6n+1) .poster-role {
+  color: #ffffff !important;
+}
+.project-item:nth-child(6n+1) .poster-desc {
+  color: #e2e5eb !important; /* GREY PLAY */
+}
+.project-item:nth-child(6n+1) .poster-meta-strip {
+  color: #c4cbd9 !important; /* SLATE GREY METADATA */
+}
+.project-item:nth-child(6n+1) .poster-highlight-tag {
+  color: var(--c-black) !important;
+  background-color: var(--c-yellow);
+  padding: 0.1rem 0.4rem;
+  display: inline-block;
+}
+
+/* CARD 2: NEON LIME BLOCK — RED TITLE, BLACK ROLES, DARK GREY DESC */
+.project-item:nth-child(6n+2) .poster-type-layout {
+  background-color: var(--c-green) !important;
+}
+.project-item:nth-child(6n+2) .poster-title {
+  color: #d8001d !important;
+  font-weight: 800;
+}
+.project-item:nth-child(6n+2) .poster-role {
+  color: var(--c-black) !important;
+}
+.project-item:nth-child(6n+2) .poster-desc {
+  color: #2b3329 !important; /* CHARCOAL GREY PLAY */
+}
+.project-item:nth-child(6n+2) .poster-meta-strip {
+  color: #1e261d !important;
+}
+.project-item:nth-child(6n+2) .poster-highlight-tag {
+  color: #ffffff !important;
+  background-color: #d8001d;
+  padding: 0.1rem 0.4rem;
+  display: inline-block;
+}
+
+/* CARD 3: ELECTRIC BLUE BLOCK — BOLD WHITE TITLE, COOL SLATE GREY DESC (REF 2, 5) */
+.project-item:nth-child(6n+3) .poster-type-layout {
+  background-color: var(--c-blue) !important;
+}
+.project-item:nth-child(6n+3) .poster-title {
+  color: #ffffff !important; /* Bold White header */
+  font-weight: 800;
+}
+.project-item:nth-child(6n+3) .poster-role {
+  color: #a4adcf !important; /* COOL GREY PLAY ON BLUE */
+}
+.project-item:nth-child(6n+3) .poster-desc {
+  color: #909bbf !important; /* COOL SLATE GREY DESC ON BLUE */
+}
+.project-item:nth-child(6n+3) .poster-meta-strip {
+  color: #7b86aa !important; /* SLATE GREY STRIP */
+}
+.project-item:nth-child(6n+3) .poster-highlight-tag {
+  color: var(--c-blue) !important;
+  background-color: #ffffff;
+  padding: 0.1rem 0.4rem;
+  display: inline-block;
+}
+
+/* CARD 4: SOFT LIGHT PINK BLOCK — MAGENTA TITLE, CHARCOAL GREY DESC */
+.project-item:nth-child(6n+4) .poster-type-layout {
+  background-color: var(--c-pink) !important;
+}
+.project-item:nth-child(6n+4) .poster-title {
+  color: #8b0032 !important;
+  font-weight: 800;
+}
+.project-item:nth-child(6n+4) .poster-role {
+  color: #4a2030 !important; /* GREY-MAGENTA PLAY */
+}
+.project-item:nth-child(6n+4) .poster-desc {
+  color: #381a25 !important;
+}
+.project-item:nth-child(6n+4) .poster-meta-strip {
+  color: #612c3f !important;
+}
+.project-item:nth-child(6n+4) .poster-highlight-tag {
+  color: #ffffff !important;
+  background-color: #8b0032;
+  padding: 0.1rem 0.4rem;
+  display: inline-block;
+}
+
+/* CARD 5: DEEP VIOLET BLOCK — WHITE TITLE, LAVENDER GREY DESC (REF 4) */
+.project-item:nth-child(6n+5) .poster-type-layout {
+  background-color: var(--c-violet) !important;
+}
+.project-item:nth-child(6n+5) .poster-title {
+  color: #ffffff !important;
+  font-weight: 800;
+}
+.project-item:nth-child(6n+5) .poster-role {
+  color: #bfa3e8 !important; /* LAVENDER GREY PLAY */
+}
+.project-item:nth-child(6n+5) .poster-desc {
+  color: #a38bc4 !important; /* COOL GREY PLAY ON VIOLET */
+}
+.project-item:nth-child(6n+5) .poster-meta-strip {
+  color: #8a74a8 !important;
+}
+.project-item:nth-child(6n+5) .poster-highlight-tag {
+  color: var(--c-violet) !important;
+  background-color: var(--c-yellow);
+  padding: 0.1rem 0.4rem;
+  display: inline-block;
+}
+
+/* CARD 6: ACID YELLOW BLOCK — RED TITLE, MIDNIGHT BLACK DESC */
+.project-item:nth-child(6n+6) .poster-type-layout {
+  background-color: var(--c-yellow) !important;
+}
+.project-item:nth-child(6n+6) .poster-title {
+  color: #d8001d !important;
+  font-weight: 800;
+}
+.project-item:nth-child(6n+6) .poster-role {
+  color: #4a4510 !important; /* OLIVE GREY PLAY */
+}
+.project-item:nth-child(6n+6) .poster-desc {
+  color: var(--c-black) !important;
+}
+.project-item:nth-child(6n+6) .poster-meta-strip {
+  color: #383514 !important;
+}
+.project-item:nth-child(6n+6) .poster-highlight-tag {
+  color: #ffffff !important;
+  background-color: #d8001d;
+  padding: 0.1rem 0.4rem;
+  display: inline-block;
+}
+
+/* ULTRA-COMPACT TYPOGRAPHY FOR THIN STRIP */
+.poster-staggered-columns {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.poster-title {
+  font-family: var(--font-mono);
+  font-size: 0.92rem;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.poster-highlight-tag {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.poster-role {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.poster-desc {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.poster-meta-strip {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  padding-top: 0.2rem;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  opacity: 0.88;
+}
+
+.square-bullet {
+  font-size: 0.65rem;
+}
+
+/* ABOUT SECTION */
+.about-section {
+  padding: 4rem 2rem;
+  background-color: var(--c-slate);
+}
+
+.about-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1.1fr;
+  gap: 2.5rem;
+}
+
+.about-col {
+  padding: 2.2rem;
+  border-radius: 8px;
+  font-family: var(--font-mono);
+}
+
+.about-col:nth-child(1) {
+  background-color: var(--c-blue);
+  color: #9cb0ef; /* GREY PLAY ON BLUE ABOUT BLOCK */
+}
+.about-col:nth-child(1) .about-heading {
+  color: #ffffff;
+}
+
+.about-col:nth-child(2) {
+  background-color: var(--c-green);
+  color: var(--c-black);
+}
+
+.about-col:nth-child(3) {
+  background-color: var(--c-red);
+  color: #f0e6eb; /* GREY PLAY ON RED ABOUT BLOCK */
+}
+.about-col:nth-child(3) .about-heading {
+  color: var(--c-yellow);
+}
+
+.about-heading {
+  font-family: var(--font-mono);
+  font-size: 1.4rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+}
+
+.bio-lead {
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.services-list ul {
+  list-style: none;
+}
+
+.services-list li {
+  font-size: 0.95rem;
+  padding: 0.4rem 0;
+  text-transform: uppercase;
+}
+
+.form-group input, .form-group select, .form-group textarea {
+  padding: 0.85rem 1rem;
+  background-color: #ffffff;
+  color: var(--c-black);
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  border-radius: 4px;
+}
+
+.submit-btn {
+  background-color: var(--c-black);
+  color: #ffffff;
+  padding: 0.95rem 1.6rem;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 1rem;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.12s;
+}
+
+.submit-btn:hover {
+  background-color: var(--c-yellow);
+  color: var(--c-black);
+}
+
+/* MODAL OVERLAY (PURE PITCH BLACK CINEMA BACKDROP) */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #000000 !important; /* 100% PURE PITCH BLACK BACKDROP! */
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease-in-out;
+  padding: 1.5rem;
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* SUBTLE VIBRATION / SHAKE KEYFRAMES FOR ARROW HOVER */
+@keyframes subtleArrowShake {
+  0% { transform: scale(1.08) rotate(0deg); }
+  25% { transform: scale(1.08) rotate(-3deg); }
+  50% { transform: scale(1.08) rotate(3deg); }
+  75% { transform: scale(1.08) rotate(-2deg); }
+  100% { transform: scale(1.08) rotate(0deg); }
+}
+
+/* MEDIA WRAPPER FLEX LAYOUT (GUARANTEES 100% THAT ARROWS NEVER OVERLAP VIDEO/IMAGE) */
+.modal-media-wrapper-relative {
+  position: relative;
+  width: 100%;
+  min-height: 280px; /* PREVENTS SPLIT-SECOND MEDIA COLLAPSE OR TEXT FLICKER */
+  background-color: #000000 !important;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 2.5rem; /* PERMANENT DEDICATED SPACING BETWEEN VIDEO/IMAGE AND ARROWS */
+  min-width: 0;
+}
+
+/* The media box is a flex item, so it defaults to min-width:auto and grows to
+   fit a wide gallery — it was rendering 2328px inside an 807px column and
+   spilling left across the typography. Pin it to the column. */
+.modal-media {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* SIDE ARROWS CONTAINER — PERMANENTLY FIXED AT VERTICAL CENTER HEIGHT ON THE RIGHT */
+.modal-arrows-side {
+  position: fixed;
+  right: 2.2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  align-items: center;
+  z-index: 1030;
+}
+
+/* TINY SPATIAL INDICATOR ARROWS ABOVE AND BELOW MAIN NAVIGATION BUTTONS */
+.tiny-arrows-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 100%;
+  pointer-events: none;
+}
+
+.tiny-arrows-above {
+  margin-bottom: 4px;
+}
+
+.tiny-arrows-below {
+  margin-top: 4px;
+}
+
+.tiny-chevron {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 900;
+  color: #D4FF00 !important; /* BRIGHT YELLOW */
+  line-height: 0.9;
+  opacity: 0.75;
+  transition: opacity 0.2s, transform 0.2s;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+}
+
+.tiny-up-chevron {
+  transform: rotate(90deg); /* POINTS UPWARDS ^ */
+}
+
+.tiny-down-chevron {
+  transform: rotate(-90deg); /* POINTS DOWNWARDS v */
+}
+
+/* SUBTLE & GENTLE ELEVATOR BUTTON MOTION */
+@keyframes elevatorArrowUp {
+  0% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-7px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes elevatorArrowDown {
+  0% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(7px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.arrow-elevator-up {
+  animation: elevatorArrowUp 0.38s cubic-bezier(0.25, 1, 0.5, 1) !important;
+}
+
+.arrow-elevator-down {
+  animation: elevatorArrowDown 0.38s cubic-bezier(0.25, 1, 0.5, 1) !important;
+}
+
+/* YELLOW ARROW NAVIGATION BUTTONS (SWAP BETWEEN PROJECTS) */
+.project-nav-btn {
+  position: relative;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.prev-project-btn, .next-project-btn {
+  position: relative;
+  top: auto;
+  transform: none;
+}
+
+.yellow-arrow-circle {
+  width: 44px;
+  height: 44px;
+  background-color: #000000 !important; /* PURE PITCH BLACK CIRCLE */
+  border-radius: 50% !important; /* 100% PERFECT CIRCLE */
+  border: 1.5px solid #D4FF00 !important; /* THIN YELLOW OUTLINE IN FONT SIZE */
+  box-shadow: none !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+
+.project-nav-btn:hover .yellow-arrow-circle {
+  background-color: #1a1a1a !important;
+  border-color: #D4FF00 !important;
+  box-shadow: none !important;
+  animation: subtleArrowShake 0.3s ease-in-out infinite alternate;
+}
+
+.project-nav-btn:active .yellow-arrow-circle {
+  transform: scale(0.95);
+}
+
+#project-modal .modal-card {
+  background-color: #000000 !important; /* PURE PITCH BLACK INSIDE MODAL */
+  color: #ffffff !important;
+  border: none !important;
+  width: 96vw;
+  max-width: 1350px;
+  height: auto;
+  max-height: 96vh;
+  padding: 1.5rem 2.5rem 2.5rem;
+  position: relative;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 1.5rem;
+  overflow-y: auto !important; /* ENABLE VERTICAL SCROLLING UP & DOWN! */
+  scrollbar-width: none !important; /* HIDE SCROLLBAR IN FIREFOX */
+  -ms-overflow-style: none !important; /* HIDE SCROLLBAR IN IE/EDGE */
+  -webkit-overflow-scrolling: touch;
+  margin: 0 auto;
+}
+
+#project-modal .modal-card::-webkit-scrollbar {
+  display: none !important; /* HIDE SCROLLBAR IN CHROME/SAFARI/WEBKIT */
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* SPLIT CONTAINER: STRICT TWO-COLUMN CSS GRID (ZERO OVERLAP GUARANTEED) */
+.modal-split-container {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 270px 1fr;
+  gap: 4.5rem; /* STRICT PERMANENT 4.5CM HORIZONTAL GAP BETWEEN TYPOGRAPHY & VIDEO */
+  align-items: end;
+  padding-top: 1rem;
+}
+
+/* RIGHT SIDE MEDIA COLUMN (BOUNDED STRICTLY WITHIN REMAINING GRID COLUMN) */
+.modal-media-column {
+  grid-column: 2;
+  width: 100%;
+  min-width: 0; /* PREVENTS OVERFLOW LEFTWARDS INTO TYPOGRAPHY */
+  min-height: 280px; /* PREVENTS SPLIT-SECOND FLICKER OR COLLAPSE BETWEEN PROJECT SWITCHES */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* MEDIA STARTS STRICTLY AFTER THE GAP */
+}
+
+/* TOP RIGHT METADATA TYPOGRAPHY (100% VISIBLE & FLUSH WITH RIGHT EDGE OF VIDEO) */
+.modal-top-right-meta {
+  width: 100%;
+  text-align: right; /* FLUSH WITH RIGHT END OF VIDEO PLAYER */
+  font-family: var(--font-mono);
+  font-size: 0.71rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: #D4FF00 !important; /* BRIGHT YELLOW FONT */
+  line-height: 1.4;
+  text-transform: uppercase;
+  margin-bottom: 3.5rem; /* APPROVED LIFTED SPACING ABOVE VIDEO */
+  overflow: visible !important;
+  white-space: normal;
+}
+
+.modal-caption-left {
+  grid-column: 1;
+  align-self: end; /* BOTTOM EDGE OF TYPOGRAPHY MATCHES BOTTOM EDGE OF VIDEO */
+  margin-bottom: 0; /* any margin here offsets that alignment by exactly its size */
+  width: 270px;
+  min-width: 270px;
+  max-width: 270px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  text-align: right; /* RIGHT ALIGNED AS REQUESTED */
+  align-items: flex-end; /* ALIGN LOGO AND TEXT TO RIGHT */
+  font-family: var(--font-mono);
+  color: #D4FF00 !important;
+  text-transform: uppercase;
+  z-index: 15;
+}
+
+.modal-caption-emblem {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  margin-bottom: 0.2rem;
+  width: 100%;
+}
+
+/* Real artwork dropped into esset/glyphs/ — shown in place of the drawn mark.
+   Sized to the same optical weight as the type block beside it. */
+.modal-caption-artwork {
+  display: block;
+  width: 108px;
+  height: auto;
+  max-height: 128px;
+  object-fit: contain;
+  /* the source art is black on white; invert so it sits on the dark canvas */
+  filter: invert(1);
+  mix-blend-mode: screen;
+}
+body.light-poster-canvas .modal-caption-artwork {
+  filter: none;
+  mix-blend-mode: multiply;
+}
+
+/* Per-project mark (see PROJECT_GLYPHS in app.js): one filled silhouette,
+   no stroke. Printed marks of this kind are cut shapes, not drawn lines, and
+   a solid mass is also the only thing the page's scan grain can sit on. */
+.modal-caption-glyph {
+  width: 78px;
+  height: 78px;
+  display: block;
+  overflow: visible;
+  /* the print: rough edge, pitted fill (see #glyph-grunge in index.html) */
+  filter: url(#glyph-grunge);
+}
+.modal-caption-glyph path {
+  /* the acid yellow of the threads in the animation at the top of the page,
+     sampled off .morph-spoke-line — not the softer #D4FF00 of the caption */
+  fill: #D4FF00;
+  fill-rule: nonzero;
+  stroke: none;
+}
+
+.modal-caption-logo {
+  height: 28px;
+  width: auto;
+  max-width: 90px;
+  object-fit: contain;
+  margin-bottom: 0.2rem;
+  display: block;
+  filter: contrast(115%) brightness(105%);
+}
+
+.modal-caption-lines {
+  font-family: var(--font-mono);
+  font-size: 0.71rem; /* SLIGHTLY REDUCED FONT SIZE AS REQUESTED */
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: 0.05em;
+  color: #D4FF00 !important; /* ALL FONT BRIGHT YELLOW! */
+  text-align: right; /* RIGHT ALIGNED */
+  width: 100%;
+}
+
+/* EDITABLE DESCRIPTION INSIDE THE OPEN PROJECT */
+.modal-desc-editable {
+  /* stored value keeps its casing; uppercase is display only */
+  text-transform: uppercase;
+  cursor: text;
+  outline: none;
+  padding: 0.2rem 0.3rem;
+  margin: 0.1rem 0;
+  border: 1px dashed rgba(250, 204, 21, 0.28);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-height: 1.35em;
+}
+.modal-desc-editable:hover {
+  border-color: rgba(250, 204, 21, 0.55);
+}
+.modal-desc-editable:focus {
+  border-color: #D4FF00;
+  border-style: solid;
+  background-color: rgba(250, 204, 21, 0.08);
+}
+.modal-desc-editable:empty::before {
+  content: attr(data-placeholder);
+  opacity: 0.45;
+  text-transform: none;
+}
+
+.modal-desc-save-btn {
+  display: inline-block; /* parent has text-align: right, so this sits right */
+  margin-top: 0.45rem;
+  padding: 0.28rem 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #D4FF00;
+  background: transparent;
+  border: 1px solid rgba(250, 204, 21, 0.4) !important;
+  cursor: pointer;
+  opacity: 0.55;
+  transition: all 0.15s ease;
+}
+.modal-desc-save-btn:hover {
+  opacity: 1;
+  border-color: #D4FF00 !important;
+}
+/* Highlighted only while there are unsaved changes */
+.modal-desc-save-btn.is-dirty {
+  opacity: 1;
+  color: #0a0a0c;
+  background: #D4FF00;
+  border-color: #D4FF00 !important;
+}
+.modal-desc-save-btn:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+@media (max-width: 850px) {
+  .modal-split-container {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  .modal-caption-left {
+    position: relative;
+    width: 100%;
+  }
+  .modal-top-right-meta {
+    position: relative;
+    top: 0;
+    right: 0;
+    text-align: left;
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* MULTI-MEDIA GALLERY CONTROLLERS FOR PROJECT DETAIL MODAL */
+.modal-gallery-container {
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* SINGLE IMAGE/VIDEO — PERFECTLY BOUNDED (NEVER OVERLAPS LEFT TEXT) */
+.modal-gallery-single {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin: 0;
+}
+
+.modal-gallery-single img, .modal-gallery-single video {
+  max-height: 78vh !important;
+  max-width: 100% !important; /* STRICTLY BOUNDED TO MEDIA COLUMN — CANNOT OVERLAP LEFT TEXT */
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 6px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
+  display: block;
+}
+
+/* CLEAN MOTION VIDEO ENGINE — HIDE ALL NATIVE VIDEO CONTROLS & TIMELINE PROGRESS BARS */
+video {
+  outline: none !important;
+}
+
+video::-webkit-media-controls,
+video::-webkit-media-controls-enclosure,
+video::-webkit-media-controls-panel,
+video::-webkit-media-controls-play-button,
+video::-webkit-media-controls-timeline,
+video::-webkit-media-controls-current-time-display,
+video::-webkit-media-controls-time-remaining-display {
+  display: none !important;
+  -webkit-appearance: none !important;
+  opacity: 0 !important;
+}
+
+/* MULTIPLE IMAGES/VIDEOS — SLEEK SIDE-BY-SIDE HORIZONTAL GALLERY (SIDE BY SIDE ON SCREEN) */
+.modal-gallery-scroll {
+  display: flex;
+  flex-direction: row; /* SIDE BY SIDE HORIZONTAL LAYOUT! */
+  gap: 2rem;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.modal-gallery-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.gallery-card-item {
+  flex-shrink: 0;
+  width: auto;
+  max-width: 440px; /* SIDE BY SIDE FIT ON SCREEN WITHOUT NEEDING TO SCROLL DOWN */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: none !important;
+  border: none !important;
+  outline: none !important;
+  background: #000000;
+  margin: 0;
+}
+
+.gallery-card-item img, .gallery-card-item video {
+  max-height: 76vh !important;
+  max-width: 440px !important;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+.gallery-card-item[draggable="true"] {
+  cursor: grab;
+  user-select: none;
+  transition: transform 0.15s, opacity 0.15s, outline 0.15s, box-shadow 0.15s;
+}
+
+.gallery-card-item[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+.gallery-card-item.card-dragging {
+  opacity: 0.45;
+  transform: scale(0.98);
+  outline: 2px dashed #60a5fa !important;
+}
+
+.gallery-card-item.card-drag-over {
+  outline: 3px solid #ff2a4b !important;
+  outline-offset: 4px;
+  transform: scale(1.01);
+  box-shadow: 0 0 30px rgba(255, 42, 75, 0.5);
+}
+
+.modal-card {
+  background-color: #000000;
+  width: 82vw;
+  max-width: 1150px;
+  height: 82vh;
+  padding: 3.5rem 4rem;
+  position: relative;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  overflow-y: auto;
+}
+
+.modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1.25rem;
+  background: var(--c-black);
+  color: #ffffff;
+  font-size: 1.8rem;
+  width: 44px;
+  height: 44px;
+  cursor: pointer;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* INLINE ADD PLUS BUTTON UNDER EVERY PROJECT */
+.inline-add-plus-btn {
+  margin-top: 0.6rem;
+  font-family: var(--font-mono) !important;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: transparent;
+  color: #D4FF00;
+  border: 1px dashed rgba(250, 204, 21, 0.45) !important;
+  padding: 0.35rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  opacity: 0.45;
+  transition: opacity 0.15s, background-color 0.15s, border-color 0.15s;
+}
+
+.inline-add-plus-btn:hover {
+  opacity: 1;
+  background: rgba(250, 204, 21, 0.12);
+  border-color: #D4FF00 !important;
+  border-style: solid !important;
+}
+
+/* REORDER ARROW BUTTONS IN CAPTION */
+.card-order-controls {
+  margin-top: 0.4rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.order-btn {
+  background: rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 0.75rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.order-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+/* GLOBAL DRAG & DROP OVERLAY - KEPT NON-BLOCKING */
+.global-drag-overlay {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+/* DESKTOP FILE HOVER ON PROJECT CARD */
+.project-item.card-file-hover {
+  outline: 3px dashed #00e5ff !important;
+  outline-offset: 4px;
+  transform: scale(1.02);
+  box-shadow: 0 0 35px rgba(0, 229, 255, 0.5);
+}
+
+.project-item.card-file-hover * {
+  pointer-events: none;
+}
+
+.project-item.card-file-hover::after {
+  content: '📥 שחרר להוספת קבצים לפרויקט';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(12, 12, 12, 0.95);
+  color: #00e5ff;
+  border: 1.5px solid #00e5ff;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.88rem;
+  font-weight: 700;
+  z-index: 100;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.8);
+}
+
+/* CARD DROP ZONES (SWAP VS MERGE INSIDE) */
+.project-item.card-drop-swap {
+  outline: 2.5px solid #1c3bf0 !important;
+  outline-offset: -2px;
+  box-shadow: 0 0 30px rgba(28, 59, 240, 0.4) !important;
+  position: relative;
+  z-index: 60;
+}
+
+.project-item.card-drop-swap::after {
+  content: '🔄 החלף מיקומים';
+  position: absolute;
+  top: 18%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(12, 12, 12, 0.96);
+  color: #7b96ff;
+  border: 1.5px solid #1c3bf0;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.85rem;
+  font-weight: 700;
+  z-index: 100;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.8);
+}
+
+.project-item.card-drop-inside {
+  outline: 3px dashed #00e5ff !important;
+  outline-offset: -2px;
+  box-shadow: 0 0 45px rgba(0, 229, 255, 0.55) !important;
+  transform: scale(1.03) !important;
+  position: relative;
+  z-index: 60;
+}
+
+.project-item.card-drop-inside::after {
+  content: '📥 שחרר להכנסת הפרויקט פנימה לגלריה';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(12, 12, 12, 0.96);
+  color: #00e5ff;
+  border: 2px solid #00e5ff;
+  padding: 0.85rem 1.4rem;
+  border-radius: 8px;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.92rem;
+  font-weight: 800;
+  z-index: 100;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.9);
+}
+
+/* CARD MULTI-SELECT CHECKBOX */
+.card-select-checkbox-wrapper {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-select-checkbox {
+  width: 22px;
+  height: 22px;
+  accent-color: #00e5ff;
+  cursor: pointer;
+  opacity: 0.45;
+  transition: opacity 0.2s ease, transform 0.15s ease;
+  border-radius: 4px;
+}
+
+.project-item:hover .card-select-checkbox,
+.card-select-checkbox:checked {
+  opacity: 1;
+  transform: scale(1.15);
+}
+
+/* FLOATING MULTI-ACTION BAR */
+.floating-selection-bar {
+  position: fixed;
+  bottom: 25px;
+  left: 50%;
+  transform: translateX(-50%) translateY(140px);
+  background: rgba(12, 12, 12, 0.98);
+  border: 1.5px solid #00e5ff;
+  border-radius: 50px;
+  padding: 0.75rem 1.8rem;
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.95), 0 0 30px rgba(0, 229, 255, 0.35);
+  z-index: 9999;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(14px);
+  color: #fff;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.88rem;
+}
+
+.floating-selection-bar.active {
+  transform: translateX(-50%) translateY(0);
+}
+
+.floating-selection-btn {
+  background: #00e5ff;
+  color: #000000;
+  border: none;
+  font-family: var(--font-mono, monospace);
+  font-weight: 800;
+  font-size: 0.82rem;
+  padding: 0.55rem 1.25rem;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.floating-selection-btn:hover {
+  background: #fff;
+  transform: scale(1.05);
+}
+
+.floating-selection-btn.secondary {
+  background: transparent;
+  color: #a4adcf;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.floating-selection-btn.secondary:hover {
+  color: #fff;
+  border-color: #fff;
+}
+
+/* ATTACH EXISTING PROJECTS BUTTON INSIDE MODAL */
+.modal-attach-existing-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(0, 229, 255, 0.08);
+  color: #00e5ff;
+  border: 1px solid rgba(0, 229, 255, 0.35);
+  padding: 0.65rem 1.25rem;
+  border-radius: 6px;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.modal-attach-existing-btn:hover {
+  background: #00e5ff;
+  color: #000000;
+  box-shadow: 0 0 25px rgba(0, 229, 255, 0.4);
+  transform: translateY(-2px);
+}
+
+/* PROJECT PICKER OVERLAY & MODAL */
+.project-picker-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(14px);
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.project-picker-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.project-picker-card {
+  background: #0d0d0d;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  width: 90%;
+  max-width: 680px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.9);
+  overflow: hidden;
+  direction: rtl;
+}
+
+.project-picker-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.project-picker-title {
+  font-family: var(--font-mono, monospace);
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.project-picker-close {
+  background: transparent;
+  border: none;
+  color: #8fa0c9;
+  font-size: 1.5rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.project-picker-close:hover {
+  color: #fff;
+}
+
+.project-picker-list {
+  padding: 1.25rem 1.5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 55vh;
+}
+
+.project-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.project-picker-item:hover {
+  background: #1e1e1e;
+  border-color: rgba(0, 229, 255, 0.4);
+}
+
+.project-picker-item.selected {
+  background: rgba(0, 229, 255, 0.12);
+  border-color: #00e5ff;
+}
+
+.project-picker-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #00e5ff;
+  cursor: pointer;
+}
+
+.project-picker-thumb {
+  width: 52px;
+  height: 52px;
+  border-radius: 6px;
+  object-fit: cover;
+  background: #000;
+  flex-shrink: 0;
+}
+
+.project-picker-info {
+  flex-grow: 1;
+}
+
+.project-picker-item-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #fff;
+}
+
+.project-picker-item-sub {
+  font-size: 0.75rem;
+  color: #8fa0c9;
+  margin-top: 0.2rem;
+}
+
+.project-picker-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #080808;
+}
+
+.project-picker-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: #a4adcf;
+  cursor: pointer;
+}
+
+.project-picker-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* MODAL DROP ZONE AND FILE HOVER */
+.modal-card.modal-file-hover {
+  outline: 3px dashed #00e5ff !important;
+  box-shadow: 0 0 50px rgba(0, 229, 255, 0.4) !important;
+}
+
+.modal-gallery-dropzone {
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+  border: 2px dashed rgba(0, 229, 255, 0.4);
+  background: rgba(0, 229, 255, 0.03);
+  border-radius: 8px;
+  padding: 1.4rem 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.modal-gallery-dropzone:hover,
+.modal-gallery-dropzone.drag-over {
+  border-color: #00e5ff;
+  background: rgba(0, 229, 255, 0.1);
+  box-shadow: 0 0 25px rgba(0, 229, 255, 0.25);
+  transform: translateY(-2px);
+}
+
+.modal-dropzone-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  pointer-events: none;
+}
+
+.modal-dropzone-icon {
+  font-size: 1.8rem;
+}
+
+.modal-dropzone-text {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #00e5ff;
+  letter-spacing: 0.5px;
+}
+
+.modal-dropzone-sub {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.72rem;
+  color: #8fa0c9;
+}
+
+/* DROP ZONE BOX INSIDE MODAL */
+.drop-zone-box {
+  border: 2px dashed rgba(255, 255, 255, 0.25) !important;
+  background: #111111;
+  padding: 1.5rem;
+  text-align: center;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.drop-zone-box:hover, .drop-zone-box.drag-over {
+  background: #1c1c1c;
+  border-color: #ff2a4b !important;
+}
+
+/* STANDALONE ADD NEW WORK TILE CARD */
+.add-square-card-wrapper {
+  width: 100%;
+  max-width: 360px !important;
+  margin: 0 auto !important;
+}
+
+.add-square-card {
+  width: 100%;
+  min-height: 220px;
+  border: 2px dashed rgba(255, 255, 255, 0.25) !important;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, transform 0.15s;
+  text-align: center;
+}
+
+.add-square-card:hover {
+  background: rgba(28, 59, 240, 0.15);
+  border-color: var(--c-blue) !important;
+  transform: translateY(-4px);
+}
+
+.add-square-icon {
+  font-size: 2.2rem;
+  margin-bottom: 0.5rem;
+  color: #ffffff;
+}
+
+.add-square-title {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.add-square-sub {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: #a4adcf;
+  margin-top: 0.3rem;
+}
+
+/* VISUAL FEEDBACK FOR CARD DRAGGING & REORDERING SWAP */
+.project-item.hybrid-card[draggable="true"] {
+  cursor: grab;
+  user-select: none;
+}
+
+.project-item.hybrid-card[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+.project-item.hybrid-card img,
+.project-item.hybrid-card video {
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+
+.project-item.hybrid-card .quick-edit-tile-btn,
+.project-item.hybrid-card .inline-add-plus-btn {
+  pointer-events: auto;
+}
+
+.project-item.hybrid-card.card-dragging {
+  opacity: 0.35;
+  transform: scale(0.96);
+  outline: 2px dashed #1c3bf0 !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.project-item.hybrid-card.card-drag-over {
+  outline: 3px solid #1c3bf0 !important;
+  outline-offset: 6px;
+  transform: scale(1.03);
+  box-shadow: 0 0 35px rgba(28, 59, 240, 0.55);
+  transition: outline-offset 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.specs-box {
+  background-color: var(--c-blue);
+  color: #a4adcf; /* GREY PLAY ON BLUE MODAL SPECS */
+  padding: 1.5rem;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+}
+
+.specs-box h4 {
+  color: #ffffff;
+}
+
+.specs-box strong {
+  color: var(--c-acid-yellow);
+}
+
+/* RESPONSIVE BREAKPOINTS */
+@media (max-width: 1024px) {
+  .projects-grid {
+    grid-template-columns: repeat(2, 1fr);
+    --grid-gap: calc(2.2rem + 2cm);
+  }
+  .about-grid { grid-template-columns: 1fr; }
+  .colophon-actions { align-items: flex-start; }
+}
+
+@media (max-width: 640px) {
+  /* Single column: no masonry needed, plain row-gap gives an identical gap. */
+  .projects-grid {
+    grid-template-columns: 1fr;
+    --grid-gap: calc(1.8rem + 2cm);
+    row-gap: var(--grid-gap);
+    grid-auto-rows: auto;
+  }
+  .poster-hero-name-full { font-size: 0.68rem !important; letter-spacing: 0.22em !important; }
+  .poster-hero-sub-row { font-size: 0.72rem !important; }
+  .poster-meta-strip-top { flex-direction: column; gap: 0.35rem; align-items: flex-start; }
+}
+
+/* GROUND BY STAGE.
+   The opening screen is white paper with the animation drawn in dark ink.
+   Once the reel has passed and the works come up, the site settles onto the
+   warm brown stock. */
+body {
+  background-color: #08090A;   /* the hero's own black — nothing white behind the panels */
+  transition: background-color 0.8s ease;
+}
+:root {
+  --stage0-ink: #17140e;
+}
+body:not(.stage-works) {
+  --morph-ink: var(--stage0-ink);
+}
+body:not(.stage-works) .poster-hero-name-full,
+body:not(.stage-works) .hero-cv-link {
+  color: var(--stage0-ink) !important;
+}
+body:not(.stage-works) .poster-canvas-toggle-btn {
+  color: var(--stage0-ink);
+  border-color: var(--stage0-ink) !important;
+}
+body:not(.stage-works) .poster-crop-mark {
+  color: rgba(0, 0, 0, 0.45);
+}
+body.stage-works {
+  background-color: var(--bg-main);
+}
+
+/* While the reel is covering the screen the corner marks sit on black, so the
+   dark stage-0 ink would make them disappear. Flip them back to light. */
+body.stage-reel:not(.stage-works) .poster-canvas-toggle-btn {
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.6) !important;
+}
+body.stage-reel:not(.stage-works) .poster-crop-mark {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+
+/* ==========================================================================
+   OPENING SCREEN — FULL-BLEED COMPOSITION WITH TYPE OVER IT
+   ========================================================================== */
+.poster-masthead {
+  position: relative;
+  max-width: none;
+  padding: 0;
+  overflow: hidden;
+}
+
+.poster-hero-grid-board,
+.poster-hero-top-row {
+  position: static;
+}
+
+/* type layer rides above the artwork */
+.hero-name-below,
+.hero-cv-link,
+.hero-edition-line {
+  position: relative;
+  z-index: 3;
+}
+
+.hero-name-below {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: auto;
+}
+
+/* HIGHLIGHTED TYPE — black letterforms on solid colour blocks, the way the
+   HFBK grid sets its titles. */
+.poster-hero-name-full {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.28em;
+  justify-content: center;
+  font-size: clamp(1.6rem, 4.4vw, 3.4rem) !important;
+  letter-spacing: -0.01em !important;
+}
+.hl {
+  display: inline-block;
+  padding: 0.04em 0.22em;
+  color: #0d0d0d !important;
+  line-height: 1.08;
+}
+.hl-blue    { background: #1E9BE8; }
+.hl-green   { background: #7D8C1E; }
+.hl-magenta { background: #E8449B; }
+
+/* CV keeps its margin-note position but picks up the same treatment */
+.hero-cv-link {
+  font-style: italic;
+  letter-spacing: 0.3em !important;
+  opacity: 1 !important;
+}
+.hero-cv-link .hl {
+  padding: 0.1em 0.4em 0.1em 0.5em;
+}
+
+/* THE STANDING LINE at the foot of the opening screen. */
+.hero-edition-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 3.2vh;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.35em;
+  padding: 0 1.2rem;
+  pointer-events: none;
+}
+.edition-big {
+  font-family: var(--font-poster-display);
+  font-size: clamp(1.5rem, 5.6vw, 4.6rem);
+  font-weight: 700;
+  line-height: 0.92;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: var(--morph-ink);
+}
+/* the middle phrase stays lowercase and light, as in the reference */
+.edition-thin {
+  font-weight: 400;
+  font-style: italic;
+  text-transform: none;
+  letter-spacing: 0;
+  opacity: 0.85;
+}
+
+@media (max-width: 640px) {
+  .hero-edition-line { bottom: 2vh; gap: 0.25em; }
+}
+
+
+/* The CV used to be pinned just off the right edge of a small artwork box.
+   Now that the artwork is the whole screen, that put it 1000px off-canvas —
+   anchor it to the screen instead. */
+.hero-cv-link {
+  position: absolute !important;
+  /* clear of both the corner toggle above and the standing line below */
+  top: 4.2rem !important;
+  bottom: auto !important;
+  left: auto !important;
+  right: 1.6rem !important;
+  transform: none !important;
+  font-size: clamp(0.9rem, 1.6vw, 1.3rem) !important;
+}
+
+/* Cream blocks under the name so it stays legible whichever colour field
+   happens to be behind it as the composition morphs. */
+.hl-blue  { background: #F2EFE2; }
+.hl-green { background: #E8F020; }
+
+/* The standing line sits on its own bar so it never fights the artwork. */
+.hero-edition-line {
+  bottom: 0 !important;
+  padding: 0.5rem 1.4rem 0.7rem !important;
+  background: rgba(242, 239, 226, 0.92);
+  justify-content: flex-start !important;
+}
+.edition-big {
+  color: #0d0d0d !important;
+  font-size: clamp(1.2rem, 4.2vw, 3.2rem) !important;
+}
+
+/* Full-bleed scales the artwork up hard, so pull the ink weights back to
+   something that still reads as drawn rather than as slabs. */
+.morph-spoke-line,
+.morph-arches-path { stroke-width: 2.4 !important; }
+.morph-ribbon-path { stroke-width: 2.0 !important; }
+.morph-satellite-dot { stroke-width: 1.6 !important; }
+.morph-web-line { stroke-width: 1.0 !important; }
+.morph-core-ring { stroke-width: 2.0 !important; }
+.morph-floating-ring { stroke-width: 1.6 !important; }
+
+
+/* ==========================================================================
+   NAME + CV — one line, one colour, clean letterforms
+   ========================================================================== */
+
+/* Chakra Petch is a chamfered face: its G, R and E have their corners cut
+   off, which is the odd broken geometry that showed up in GUREVICH. Set the
+   name in the plain grotesque instead. */
+.poster-hero-name-full {
+  font-family: var(--font-primary) !important;
+  font-size: clamp(0.8rem, 1.45vw, 1.15rem) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.02em !important;
+  gap: 0 !important;
+}
+
+.hero-name-below {
+  position: relative;
+  align-items: baseline;
+  padding: 0 1.6rem;
+}
+
+/* Same size, same baseline, hard right. */
+.hero-cv-link {
+  position: absolute !important;
+  top: 0 !important;
+  bottom: auto !important;
+  left: auto !important;
+  right: 1.6rem !important;
+  transform: none !important;
+  font-family: var(--font-primary) !important;
+  font-size: clamp(0.8rem, 1.45vw, 1.15rem) !important;
+  font-weight: 700 !important;
+  font-style: normal !important;
+  letter-spacing: 0.02em !important;
+}
+
+/* A single uniform block behind both. */
+.hl,
+.hl-blue,
+.hl-green,
+.hl-magenta {
+  background: #F2EFE2 !important;
+  color: #0d0d0d !important;
+  padding: 0.22em 0.5em !important;
+  line-height: 1.1;
+}
+
+
+/* Centre the name reliably: a block row with inline content centres without
+   depending on how the flex children resolve. CV stays absolutely placed on
+   the same line at the right. */
+.hero-name-below {
+  display: block !important;
+  text-align: center !important;
+}
+.poster-hero-name-full {
+  display: inline-flex !important;
+  margin: 0 auto !important;
+}
+
+
+/* The standing line sits straight on the artwork now — no bar behind it, so
+   the bottom of the screen reads the same as the rest. */
+.hero-edition-line {
+  background: none !important;
+  padding: 0 1.6rem 2.4vh !important;
+}
+
+/* Name and CV drop to just above that line. */
+.hero-name-below {
+  margin-top: auto !important;
+  margin-bottom: 9vh !important;
+}
+.hero-cv-link {
+  top: auto !important;
+  bottom: 0 !important;
+}
+
+
+/* `margin-top: auto` never reached this row — it is nested two wrappers deep
+   inside the masthead, so it was not a flex child of the column it needed to
+   push against. Anchor it to the bottom of the screen directly, the same way
+   the standing line is anchored. */
+.hero-name-below {
+  position: absolute !important;
+  left: 0;
+  right: 0;
+  bottom: 13vh !important;
+  margin: 0 !important;
+}
+
+
+/* ==========================================================================
+   TYPE BLOCKS — HFBK GRID COLOURS
+   Black letterforms on flat screen colour, one colour per block.
+   ========================================================================== */
+.hl {
+  color: #0d0d0d !important;
+  padding: 0.22em 0.5em !important;
+  line-height: 1.1;
+}
+.hl-green   { background: #3CB54A !important; }
+.hl-orange  { background: #F5821F !important; }
+.hl-blue    { background: #2E7FE8 !important; }
+.hl-magenta { background: #FF3DDB !important; }
+.hl-aqua    { background: #5FFBD8 !important; }
+.hl-yellow  { background: #D4FF00 !important; }
+.hl-pink    { background: #FFC8D8 !important; }
+
+/* the standing line becomes three coloured blocks, like a row of the grid */
+.edition-big {
+  color: #0d0d0d !important;
+  padding: 0.06em 0.22em;
+}
+.hero-edition-line {
+  gap: 0.18em !important;
+}
+
+
+/* ==========================================================================
+   LINE CHARACTER
+   The strokes were uniform and clean, which is what made them read as plotted.
+   Uneven weight per thread plus the heavier grain mask gives each one its own
+   hand, and the mask now bites into the edges instead of dusting them.
+   ========================================================================== */
+.morph-spoke-line,
+.morph-arches-path,
+.morph-ribbon-path,
+.morph-core-ring,
+.morph-floating-ring,
+.morph-satellite-dot {
+  mask: url(#ink-grain);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* no two threads the same weight */
+.morph-spoke-line:nth-child(6n+1) { stroke-width: 3.4 !important; }
+.morph-spoke-line:nth-child(6n+2) { stroke-width: 1.7 !important; }
+.morph-spoke-line:nth-child(6n+3) { stroke-width: 2.9 !important; }
+.morph-spoke-line:nth-child(6n+4) { stroke-width: 2.1 !important; }
+.morph-spoke-line:nth-child(6n+5) { stroke-width: 3.8 !important; }
+.morph-spoke-line:nth-child(6n)   { stroke-width: 1.4 !important; }
+
+.morph-arches-path { stroke-width: 3.0 !important; }
+.morph-ribbon-path { stroke-width: 2.3 !important; }
+
+.morph-satellite-dot:nth-child(3n)   { stroke-width: 2.4 !important; }
+.morph-satellite-dot:nth-child(3n+1) { stroke-width: 1.3 !important; }
+
+/* the chords stay hairline so they read as a second, lighter pass */
+.morph-web-line { stroke-width: 0.9 !important; opacity: 0.85 !important; }
+
+
+/* A block can land on a field of its own colour as the composition morphs and
+   simply disappear — the name did exactly that on the green pass. A hairline
+   keyline keeps every block separated from whatever is behind it. */
+.hl,
+.edition-big {
+  box-shadow: 0 0 0 1.5px #0d0d0d;
+}
+
+
+/* Arrowheads on the threads. `context-stroke` makes the head take the line's
+   own colour, so it flips with the canvas like everything else. The grain mask
+   is deliberately NOT applied to the arrow-bearing paths' markers — a chewed
+   arrowhead just reads as a smudge. */
+.morph-spoke-line {
+  marker-end: url(#thread-arrow);
+}
+.morph-arches-path {
+  marker-end: url(#thread-arrow);
+}
+
+
+/* ==========================================================================
+   WOVEN GROUND
+   The reference sits on linen: a fine crosshatch, not a dot screen. Two
+   near-transparent gradient weaves crossing at right angles read as cloth and
+   cost nothing — again NOT an SVG filter, which freezes Safari full-bleed.
+   ========================================================================== */
+.poster-masthead::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background-image:
+    repeating-linear-gradient(90deg,
+      rgba(0,0,0,0.055) 0px, rgba(0,0,0,0.055) 1px,
+      transparent 1px, transparent 3px),
+    repeating-linear-gradient(0deg,
+      rgba(0,0,0,0.045) 0px, rgba(0,0,0,0.045) 1px,
+      transparent 1px, transparent 3px),
+    repeating-linear-gradient(90deg,
+      rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 1px,
+      transparent 1px, transparent 6px);
+  mix-blend-mode: multiply;
+  opacity: 0.9;
+}
+
+
+/* ==========================================================================
+   FINAL TYPE + LINE PASS
+   ========================================================================== */
+
+/* No keyline — colour only. */
+.hl,
+.edition-big {
+  box-shadow: none !important;
+}
+
+/* Name and CV: one shared colour, larger. */
+.poster-hero-name-full,
+.hero-cv-link {
+  font-size: clamp(1.15rem, 2.3vw, 1.9rem) !important;
+}
+
+/* Thinner threads and a smaller arrowhead — the line work should read as
+   drawn, not as bars. */
+.morph-spoke-line:nth-child(6n+1) { stroke-width: 1.5 !important; }
+.morph-spoke-line:nth-child(6n+2) { stroke-width: 0.8 !important; }
+.morph-spoke-line:nth-child(6n+3) { stroke-width: 1.3 !important; }
+.morph-spoke-line:nth-child(6n+4) { stroke-width: 1.0 !important; }
+.morph-spoke-line:nth-child(6n+5) { stroke-width: 1.7 !important; }
+.morph-spoke-line:nth-child(6n)   { stroke-width: 0.7 !important; }
+
+.morph-arches-path   { stroke-width: 1.3 !important; }
+.morph-ribbon-path   { stroke-width: 1.1 !important; }
+.morph-core-ring     { stroke-width: 1.2 !important; }
+.morph-floating-ring { stroke-width: 0.9 !important; }
+.morph-web-line      { stroke-width: 0.5 !important; }
+.morph-satellite-dot:nth-child(3n)   { stroke-width: 1.1 !important; }
+.morph-satellite-dot:nth-child(3n+1) { stroke-width: 0.7 !important; }
+
+/* The standing line becomes a full-width band across the very bottom, the
+   three blocks sharing the row edge to edge. */
+.hero-edition-line {
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  gap: 0 !important;
+  padding: 0 !important;
+  align-items: stretch !important;
+}
+.edition-big {
+  flex: 1 1 0 !important;
+  text-align: center;
+  padding: 0.28em 0.2em !important;
+  white-space: nowrap;
+  font-size: clamp(1rem, 3.4vw, 2.6rem) !important;
+}
+/* The outer two hold the page's edge, on the SAME 1.6rem inset the CV link
+   sits at — so 2026 lines up under CV and PORTFOLIO answers it on the left.
+   Centred in their thirds they floated inward and the band had no edges. */
+.edition-big:first-child {
+  text-align: left;
+  padding-left: 1.6rem !important;
+}
+.edition-big:last-child {
+  text-align: right;
+  padding-right: 1.6rem !important;
+}
+
+
+/* ==========================================================================
+   REFERENCE PASS — soft forms, hairline coloured threads
+   The line work in the references is THIN and tinted (pink, ink blue, olive),
+   never heavy black bars, and it crosses over pale rounded forms sitting on a
+   single saturated ground.
+   ========================================================================== */
+
+/* Rounded forms: pale, flat, no outline. */
+.morph-pebble {
+  fill: #F7F4EC;
+  stroke: none;
+  opacity: 1;
+}
+.morph-pebble:nth-child(3n)   { fill: #C9A86A; }  /* tan, as in the reference */
+.morph-pebble:nth-child(4n+1) { fill: #FFFFFF; }
+
+/* Threads: hairline, tinted, and they read over the forms rather than
+   stamping across them. */
+.morph-spoke-line {
+  stroke-width: 0.55 !important;
+  opacity: 0.9 !important;
+  mask: none !important;          /* the burn mask just ate a hairline */
+  marker-end: none !important;    /* heads overpowered a line this fine */
+}
+.morph-spoke-line:nth-child(6n+1) { stroke: #E35FA8 !important; }  /* pink */
+.morph-spoke-line:nth-child(6n+2) { stroke: #1D3F8F !important; }  /* ink blue */
+.morph-spoke-line:nth-child(6n+3) { stroke: #8C7A34 !important; }  /* olive */
+.morph-spoke-line:nth-child(6n+4) { stroke: #1A1A1A !important; }
+.morph-spoke-line:nth-child(6n+5) { stroke: #E35FA8 !important; }
+.morph-spoke-line:nth-child(6n)   { stroke: #1D3F8F !important; }
+
+.morph-arches-path {
+  stroke: #1A1A1A !important;
+  stroke-width: 0.5 !important;
+  mask: none !important;
+  marker-end: none !important;
+}
+.morph-ribbon-path {
+  stroke: #8C7A34 !important;
+  stroke-width: 0.5 !important;
+  mask: none !important;
+}
+.morph-web-line {
+  stroke: #1D3F8F !important;
+  stroke-width: 0.4 !important;
+  opacity: 0.75 !important;
+}
+
+/* Ring outlines in tan, like the gold ellipses on the blue spread. */
+.morph-floating-ring {
+  stroke: #C9A86A !important;
+  stroke-width: 0.9 !important;
+  mask: none !important;
+}
+.morph-core-ring {
+  stroke: #C9A86A !important;
+  stroke-width: 0.8 !important;
+  mask: none !important;
+}
+
+/* Anchor points stay small and solid where the threads meet the forms. */
+.morph-satellite-dot {
+  fill: #1A1A1A !important;
+  stroke: none !important;
+  mask: none !important;
+}
+.morph-core-dot { fill: #1A1A1A !important; }
+.morph-stipple-group circle { opacity: 0.55 !important; }
+
+
+/* ==========================================================================
+   POSTER PASS — one flat ground, strewn forms, hairline cords
+   ========================================================================== */
+
+/* The linen weave went right across the opening screen; the poster has no
+   such texture, so it goes. */
+.poster-masthead::before { display: none !important; }
+
+/* One saturated ground, as on the spread — the old stepped colour fields are
+   what made this read as blocks rather than a printed page. */
+#morph-blob-path,
+#morph-blob-under,
+#morph-arches-path,
+#morph-ribbon-path,
+.morph-web-line,
+/* The anchor dots are gone with the eyelets: a cord ends inside a hole now,
+   and a dot drawn over it would plug the hole straight back up. */
+.morph-stipple-group,
+.morph-floating-ring,
+#morph-satellites-group,
+#morph-core-group { display: none !important; }
+
+body:not(.stage-works) .poster-masthead {
+  background: #F078AE;   /* the reference's pink ground */
+}
+
+/* Strewn forms. Two inks on a pink ground, straight off the reference:
+   olive is a GROUND colour there, never an ink, so it is not used as a fill. */
+.morph-pebble { stroke: none; }
+.morph-pebble:nth-child(4n+1) { fill: url(#stone-ink-a); }
+.morph-pebble:nth-child(4n+2) { fill: url(#stone-ink-b); }
+.morph-pebble:nth-child(4n+3) { fill: url(#stone-ink-a); }
+.morph-pebble:nth-child(4n)   { fill: url(#stone-ink-b); }
+
+/* Cords: hairline and dark, as in the reference. */
+.morph-spoke-line {
+  stroke: #123C1E !important;
+  stroke-width: 0.35 !important;
+  fill: none !important;
+  opacity: 0.9 !important;
+  mask: none !important;
+  marker-end: none !important;
+}
+.morph-spoke-line:nth-child(5n+2) { stroke: #82792F !important; }
+.morph-spoke-line:nth-child(5n+4) { stroke: #EE2E24 !important; }
+
+.morph-satellite-dot {
+  fill: #14161C !important;
+  stroke: none !important;
+  mask: none !important;
+}
+
+/* One colour across the standing line. */
+.edition-big { background: #D4FF00 !important; }
+
+
+/* ==========================================================================
+   FINAL TYPE PASS
+   ========================================================================== */
+
+/* The standing line reads as one sentence: same face, same weight, same case
+   throughout — the middle phrase was italic lowercase at a lighter weight. */
+.edition-big,
+.edition-thin {
+  font-family: var(--font-poster-display) !important;
+  font-weight: 700 !important;
+  font-style: normal !important;
+  text-transform: uppercase !important;
+  letter-spacing: -0.02em !important;
+  opacity: 1 !important;
+  background: #C9A86A !important;   /* the tan of the forms */
+  color: #14161C !important;
+}
+
+/* Name and CV: white letterforms in a colour block. */
+.poster-hero-name-full .hl,
+.hero-cv-link .hl {
+  background: #D6357F !important;
+  color: #FFFFFF !important;
+}
+
+
+/* Name and CV ride high above the centre, not down near the foot. */
+.hero-name-below {
+  top: 16vh !important;
+  bottom: auto !important;
+}
+
+/* The red of the forms. White letters in a red block reads on every ground
+   in both colourways, which a red letterform on the pink one would not. */
+.poster-hero-name-full .hl,
+.hero-cv-link .hl {
+  background: #EE2E24 !important;
+  color: #FFFFFF !important;
+}
+
+
+/* ==========================================================================
+   PROJECT SIDEBAR — plain editable lines, no boxes
+   ========================================================================== */
+/* The sidebar at rest: plain text, nothing that looks like a form.
+   Four registers, so the block reads in an order instead of as one slab —
+   the number and the stamp are marginal type, the title is the heading, and
+   the description is running text left in its own casing. */
+.modal-work-no {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  opacity: 0.55;
+  margin-bottom: 0.35rem;
+}
+.modal-work-title {
+  margin: 0 0 0.3rem 0;
+  font-family: var(--font-poster-display), var(--font-mono);
+  font-size: 1.12rem;
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: #D4FF00;
+}
+.modal-work-stamp {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.72;
+  padding-bottom: 0.45rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(250, 204, 21, 0.25);
+}
+.modal-work-body {
+  /* running text: reading size, normal case, no tracking fighting the line,
+     and flush on both edges the way the reference sets its body copy */
+  text-align: justify;
+  text-align-last: right;
+  font-size: 0.74rem;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-height: 1.2em;
+}
+.modal-work-credit {
+  margin-top: 0.55rem;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.62;
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-height: 1.2em;
+}
+.modal-work-title:empty::before,
+.modal-work-body:empty::before,
+.modal-work-credit:empty::before {
+  content: attr(data-placeholder);
+  opacity: 0.4;
+  font-weight: 400;
+}
+.modal-caption-view {
+  cursor: text;
+  transition: background-color 0.15s ease;
+}
+.modal-caption-view:hover {
+  background: rgba(250, 204, 21, 0.07);
+}
+.modal-line-muted { opacity: 0.85; }
+
+/* The sidebar under edit: real fields, same type and same yellow, so the
+   text does not change shape on the way in or out of editing. */
+.modal-field {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: var(--font-mono);
+  font-size: 0.71rem;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: 0.05em;
+  text-align: right;
+  color: #D4FF00;
+  background: rgba(250, 204, 21, 0.06);
+  border: 1px solid rgba(250, 204, 21, 0.32) !important;
+  border-radius: 0;
+  padding: 0.22rem 0.35rem;
+  margin: 0 0 0.22rem 0;
+  outline: none;
+  overflow: hidden;         /* the field grows to its text instead */
+  resize: none;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.modal-field:focus {
+  border-color: #D4FF00 !important;
+  background: rgba(250, 204, 21, 0.12);
+}
+.modal-field::placeholder {
+  color: rgba(250, 204, 21, 0.42);
+}
+.modal-field-desc { min-height: 4.2em; text-transform: none; }
+.modal-field-muted { opacity: 0.85; }
+.modal-field-title { font-weight: 700; }
+
+/* Each field says what it is, so nothing has to be guessed from position. */
+.modal-field-label {
+  display: block;
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.5;
+  /* tight: five labelled fields have to add as little height as possible
+     over the text they stand in for, or the artwork beside them shifts */
+  margin: 0.15rem 0 0.08rem 0;
+}
+.modal-field-pair {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 0.35rem;
+}
+.modal-field-pair .modal-field { margin-bottom: 0; }
+/* The number is shown but not offered: it is the project's place in the grid,
+   so a typed value would be overwritten by the next render. */
+.modal-field-static {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  margin-bottom: 0.15rem;
+}
+.modal-field-note {
+  font-size: 0.5rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  opacity: 0.55;
+}
+
+.modal-edit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+/* Five controls have to sit in a column this narrow without wrapping into a
+   second row, so the buttons in here are smaller than the site default. */
+.modal-edit-actions .modal-desc-save-btn,
+.modal-edit-actions .modal-desc-clear-btn {
+  margin-top: 0;
+  padding: 0.24rem 0.45rem;
+  font-size: 0.58rem;
+  letter-spacing: 0.04em;
+}
+/* Export sits at the far end of the row and stays quiet until it is wanted. */
+.modal-export-btn {
+  padding: 0.28rem 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #D4FF00;
+  background: transparent;
+  border: 1px solid rgba(250, 204, 21, 0.22) !important;
+  cursor: pointer;
+  opacity: 0.38;
+  transition: opacity 0.15s ease, border-color 0.15s ease;
+}
+.modal-export-btn:hover {
+  opacity: 1;
+  border-color: rgba(250, 204, 21, 0.7) !important;
+}
+.modal-export-btn:first-child { margin-right: auto; }
+
+/* Some of the resets on this page set display on everything they touch, so
+   the attribute has to win on its own. */
+.modal-caption-lines [hidden] { display: none !important; }
+.modal-desc-clear-btn {
+  padding: 0.28rem 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #D4FF00;
+  background: transparent;
+  border: 1px solid rgba(250, 204, 21, 0.4) !important;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.15s ease;
+}
+.modal-desc-clear-btn:hover { opacity: 1; }
+
+/* ==========================================================================
+   HERO — name below the pink form, line work closer to the reference
+   ========================================================================== */
+
+/* well down the screen, clear of the shape it used to sit inside */
+.hero-name-below {
+  top: 46vh !important;
+  bottom: auto !important;
+}
+.hero-cv-link { top: 0 !important; }
+
+/* The reference cords are long, nearly STRAIGHT diagonals that cross in tight
+   bundles — not loose curls. Thinner again, and darker. */
+.morph-spoke-line {
+  stroke-width: 0.28 !important;
+  stroke: #14161C !important;
+  opacity: 0.95 !important;
+}
+
+
+/* Anchor nodes are small in the reference, not big discs. */
+.morph-satellite-dot { r: 1.1; }
+
+
+/* Tan ellipse rings, as on the reference's blue panel. They travel with the
+   composition now, so they have to sit BEHIND the cords rather than compete
+   with them: thinner line, slightly dropped back. */
+.morph-comp-ring {
+  fill: none;
+  stroke: #FFFFFF;
+  stroke-width: 1.7;
+  opacity: 0.85;
+}
+
+/* Name and CV higher again. */
+.hero-name-below { top: 30vh !important; }
+
+
+/* ------------------------------------------------------------------------
+   GESTURE FEEDBACK
+   A stage used to change with no warning: you pushed, nothing moved, and then
+   a panel arrived. The incoming panel now leans a few pixels toward you while
+   the gesture is still building, so the page answers your hand before it
+   commits. --stage-nudge is set from the wheel/touch travel and released the
+   moment the stage flips.
+   ------------------------------------------------------------------------ */
+body:not(.stage-reel) .hero-stage.poster-section-plate,
+body.stage-reel:not(.stage-works) .poster-portfolio-section {
+  transform: translateY(calc(100% - var(--stage-nudge)));
+}
+/* The quick transition applies ONLY while a gesture is live. Left on, it
+   would also catch the panel on the way back down and slam it in 120ms
+   instead of letting it travel. */
+body.gesture-live .hero-stage.poster-section-plate,
+body.gesture-live .poster-portfolio-section {
+  transition: transform 120ms ease-out;
+}
+
+
+/* The hub dot and its ring are the last of the bio-map centre. There is no
+   centre on the poster field — the forms are the subject — so they read as a
+   stray mark sitting in the middle of the composition. */
+#morph-core-dot,
+#morph-core-ring,
+#morph-core-ring-outer {
+  display: none;
+}
+
+
+/* ==========================================================================
+   THE WORKS RAIL
+   Two rows of identical boxes running sideways, a number over each, and the
+   hovered work's line moving along a band underneath. The works used to be a
+   tall masonry column you scrolled down through; this is the reference's
+   browsing gesture instead — you travel across the body of work, not down it.
+   ========================================================================== */
+.poster-portfolio-section {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;              /* the RAIL scrolls, not the panel */
+  padding: 3.5rem 0 0.7rem;
+}
+
+.works-rail {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 0.5rem 0.9rem;
+  /* NOT scroll-behavior: smooth. With it, every `scrollLeft +=` reads a value
+     that is still animating toward the last one, so a fast wheel collapses
+     into a fraction of the distance and the rail crawls. */
+}
+.works-rail::-webkit-scrollbar { display: none; }
+
+/* Column-first over two rows: card 0 sits above card 1, card 2 above card 3.
+   That is what makes the numbering read 67/66, 65/64 down each column. */
+.projects-grid.works-rail-track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(2, auto);
+  grid-template-columns: none;
+  grid-auto-rows: auto;
+  grid-auto-columns: 15.5rem;
+  column-gap: 2.4rem;
+  row-gap: 1.1rem;
+  max-width: none;
+  width: max-content;
+  margin: 0;
+  align-items: start;
+}
+
+.project-item.works-card {
+  width: 15.5rem;
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+/* The number sits ABOVE its work, in the HFBK grid's turquoise — the same
+   colour on every one of them, so the run of numbers reads as a single
+   counting system rather than as decoration. */
+.works-num {
+  font-family: var(--font-poster-display);
+  font-weight: 700;
+  font-style: italic;
+  font-size: 1.05rem;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  color: #b6c7ea;
+  opacity: 1;
+  /* The gap under the number is the channel the cord hangs in. At 0.32rem
+     there was none: the cord left the number, dropped straight behind the
+     artwork, and only its two ends showed — which read as a peak rather than
+     a sag. It needs to clear WORKS_CORD_SAG with a little to spare. */
+  margin-bottom: 2.1rem;
+  /* over the cord, which passes behind it */
+  position: relative;
+  z-index: 3;
+}
+
+/* One box, always the same shape, so the two rows read as ranks — but the
+   work inside is shown WHOLE. Several of these are upright posters, and any
+   crop of a poster takes something off it. */
+.media-container.works-thumb {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 0;
+  /* The box carries the section's OWN ground, so an upright poster reads as
+     sitting on the page rather than inside a lighter rectangle cut into it —
+     the box disappears and only the work is left.
+     min-height has to be cancelled — the base .media-container sets 180px,
+     which overrode the aspect ratio and made every box the same tall black
+     rectangle regardless of the work inside it. */
+  background: var(--bg-main);
+  min-height: 0;
+}
+/* The black lives on the MEDIA as well as on its box: .media-container img/
+   video paints #000 behind every still, so clearing only the box left the
+   letterbox black anyway. Both have to go transparent for the tan to show. */
+.media-container.works-thumb img,
+.media-container.works-thumb video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  background-color: transparent !important;
+  display: block;
+}
+
+/* Hovering a work starts its clip and NOTHING else — no lift, no dimming,
+   no scaling. The still and the clip occupy the very same rectangle, so the
+   image must not appear to move at all as one replaces the other. */
+.project-item.works-card,
+.project-item.works-card:hover,
+.project-item.works-card:hover .media-container.works-thumb {
+  transform: none !important;
+  opacity: 1;
+  transition: none;
+}
+
+
+/* The selection checkbox is a working tool, not part of the composition. */
+.works-card .card-select-checkbox-wrapper {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.works-card:hover .card-select-checkbox-wrapper { opacity: 1; }
+
+/* The add tile keeps the rail's box so it ranks with the rest. */
+.project-item.add-square-card-wrapper {
+  width: 15.5rem;
+  margin: 0;
+}
+.project-item.add-square-card-wrapper .add-square-card {
+  aspect-ratio: 16 / 9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---- the line under the rail ------------------------------------------- */
+/* No block behind the line any more — the words themselves carry the
+   colour, straight on the blue. margin-top:auto drops the band to the foot
+   of the section, so nothing sits under it. */
+.works-marquee {
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 0;
+  background: none;
+  margin-top: auto;
+  pointer-events: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.works-marquee-track {
+  display: inline-block;
+  white-space: nowrap;
+  /* the text is written twelve times over, so sliding by half the track puts
+     an identical copy exactly where the first one started — no seam */
+  animation: works-marquee-run 78s linear infinite;
+  will-change: transform;
+}
+@keyframes works-marquee-run {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* Black type on a flat colour block, straight off the HFBK programme grid —
+   the type never carries the colour itself, the block behind it does. */
+/* The colour is in the letterforms. It changes with whichever work is
+   under the cursor. */
+.works-marquee-item {
+  font-family: var(--font-poster-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: clamp(1.15rem, 2.9vw, 2.6rem);
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+  color: var(--marquee-colour, #5FFBD8);
+  background: none;
+  padding: 0 0.3em;
+  opacity: 1;
+  transition: color 0.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .works-marquee-track { animation: none; }
+}
+
+@media (max-width: 760px) {
+  .projects-grid.works-rail-track { grid-auto-columns: 11rem; }
+  .project-item.works-card,
+  .project-item.add-square-card-wrapper { width: 11rem; }
+}
+
+
+/* ------------------------------------------------------------------------
+   THE REEL'S FLANKING TYPE
+   Its name at one edge of the page, its year at the other, both reading
+   across and level with the middle of the video.
+   ------------------------------------------------------------------------ */
+.reel-edge-label {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-poster-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  /* Small marginal labels, not headlines. Letter-spaced open so they still
+     hold the edge of the canvas at this size. */
+  font-size: 0.8rem;
+  letter-spacing: 0.16em;
+  line-height: 1;
+  /* The acid yellow of the hero's threads — the labels are the only type on
+     the plate, so they carry the palette on their own. */
+  color: #D4FF00;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 2;
+}
+.reel-edge-left  { left: 1.1rem; }
+.reel-edge-right { right: 1.1rem; }
+
+@media (max-width: 760px) {
+  .reel-edge-label { font-size: 0.66rem; letter-spacing: 0.1em; }
+  .reel-edge-left  { left: 0.6rem; }
+  .reel-edge-right { right: 0.6rem; }
+}
+
+
+/* ------------------------------------------------------------------------
+   THE WORKS GROUND IS BLACK
+   Both the section and the boxes behind the stills, so an upright poster
+   leaves the same black to either side rather than a square of some other
+   colour sitting inside the page.
+   ------------------------------------------------------------------------ */
+/* The works stand on the same ground as the entry page: the masthead's
+   black with its light off to the left, not a flat #000. Same values as
+   .poster-masthead and the reel, so scrolling the whole page never crosses
+   a seam between one black and another. */
+.poster-portfolio-section {
+  background-color: #08090A;
+  background-image: radial-gradient(96% 84% at 26% 64%, #17181A 0%, #0C0D0E 58%, #070708 100%);
+}
+/* No ground on the card. See the block at the end of this file: every card
+   is transparent and the ground belongs to the section behind them. */
+
+
+/* The clip sits exactly over the still (JS sizes it to the still's rect, so
+   it has no letterbox of its own to paint black) and only appears on hover. */
+.media-container.works-thumb { display: flex; align-items: center; justify-content: center; }
+/* No width/height here on purpose. The base .media-container rule sets them
+   to 100% with !important, and anything declared here would have to be
+   !important too — which would then beat the exact per-card size the script
+   measures off the still. The script sets those inline AS important instead,
+   and this rule stays out of the way. */
+.media-container.works-thumb .hover-video-loop {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  object-fit: fill !important;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+.works-card:hover .media-container.works-thumb .hover-video-loop { opacity: 1; }
+
+
+/* ------------------------------------------------------------------------
+   THE RANKS CARRY THEIR OWN PALETTE
+   The reference panel is white on blue, nothing else — the ranks read as one
+   repeating element and any second colour breaks them into groups. The fill
+   cross-fades over the travel so it arrives with the positions.
+   ------------------------------------------------------------------------ */
+/* THE PALETTE IS FIXED, BUT IT IS NOT ONE COLOUR.
+   Every form keeps the colour it is dealt for as long as the page is open:
+   nothing cross-fades, nothing is scoped to an arrangement, nothing advances
+   with the morph. Colour is the one thing in this field that never moves —
+   only position, silhouette and tension do. The full set is back, though,
+   because a field of nothing but white had no rhythm across it. */
+.morph-pebble { transition: none; }
+/* AMBIENT INK — and it is a MATERIAL, not a colour. Every form is filled
+   with the crust pattern, which is pinned to user space: the forms travel
+   across a slab that does not move, so each of them is a piece cut out of
+   the same stone. Two weights of it, so the field still has depth. They sit
+   under full opacity so the haze behind comes through, which is what keeps
+   them IN the atmosphere rather than on top of it. */
+/* ONE FLAT INK, the way the reference cuts its silhouettes — but a charcoal
+   black, not an absolute one. `iron-grit` ends on an overlay blend, and
+   overlay against 0 is 0: on pure black every speck the turbulence made was
+   being crushed to nothing, which is why the forms came out glassy. At #1C
+   the grain lands. */
+.morph-pebble[class], .morph-pebble[class] path { fill: #b6c7ea !important; stroke: none !important; opacity: 1 !important; }
+
+/* The hoops in the olive — the reference's second ground colour, which is
+   where that olive belongs: behind things, not as an ink on top of them. */
+.morph-comp-ring {
+  stroke: #D4FF00 !important;
+  stroke-width: 1.3 !important;
+  opacity: 0.5 !important;
+  transition: none;
+}
+
+/* Cords back to the tinted set. [class] lifts these to the same specificity
+   as the .morph-spoke-line:nth-child() rules further up, which are
+   !important too — without it a later rule still loses to them. */
+.morph-spoke-line { transition: none; }
+/* HIGH-VOLTAGE. The threads are the brightest thing on the page — in the
+   reference they are the only thing that is. */
+.morph-spoke-line[class],
+.morph-spoke-line[class]:nth-child(3n+1),
+.morph-spoke-line[class]:nth-child(3n+2),
+.morph-spoke-line[class]:nth-child(3n) {
+  stroke: #D4FF00 !important;
+  stroke-width: 1.7 !important;
+  opacity: 1 !important;
+}
+
+
+/* ------------------------------------------------------------------------
+   THE DOTS IN THE STANDING LINE
+   One circle at the far end, and travelling back along the band it repeats
+   into a tight offset stack through the middle — the same offset-repeat the
+   HFBK grid uses. They sit INSIDE the tan block, under the type, and drift
+   slowly so the whole run reads as coming in from one side.
+   ------------------------------------------------------------------------ */
+/* NOT position:relative here — the standing line is already positioned, and
+   re-declaring it dropped the band out of its fixed place at the foot of the
+   page and into the middle of the artwork.
+   The tan moves from the three spans ONTO the line itself. It has to: with
+   the colour on the spans, they paint over the dot layer however the z-order
+   is set, and the dots were invisible. Line (tan) -> dots -> type. */
+.hero-edition-line {
+  /* !important because an earlier rule clears this with `background: none
+     !important` — without it the tan never lands and the band goes clear. */
+  background: #C9A86A !important;
+}
+.hero-edition-line .edition-big,
+.hero-edition-line .edition-thin {
+  background: transparent !important;
+}
+
+.edition-dots {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  /* under the type: the words stay the thing you read */
+  z-index: 0;
+  animation: edition-dots-drift 4.2s ease-in-out infinite alternate;
+}
+
+/* The type has to sit above the dots, and it only does so once it is given a
+   stacking context of its own — the dots layer is a later sibling. */
+.hero-edition-line .edition-big {
+  position: relative;
+  z-index: 1;
+}
+
+/* Sized to leave room for the offset. At 1.05em they were nearly as tall as
+   the band itself, so the vertical stagger pushed them into the overflow
+   clip and the whole stack fused into one flat pink bar. */
+.edition-dot {
+  position: absolute;
+  top: 50%;
+  width: 0.72em;
+  height: 0.72em;
+  margin-left: -0.36em;
+  /* !important: a global poster rule squares off every corner on the page,
+     and without it these render as little pink boxes. */
+  border-radius: 50% !important;
+  background: #F078AE;          /* the pink of the ground */
+  transform: translateY(calc(-50% + var(--dy, 0px)));
+  font-size: clamp(1rem, 3.4vw, 2.6rem);
+}
+
+/* The one at the end is the whole stack resolved, so it carries a little
+   more weight than any single member of it. */
+.edition-dot-one {
+  width: 0.96em;
+  height: 0.96em;
+  margin-left: -0.48em;
+  border-radius: 50% !important;
+}
+
+@keyframes edition-dots-drift {
+  from { transform: translateX(-2.2%); }
+  to   { transform: translateX(2.2%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .edition-dots { animation: none; }
+}
+
+
+/* NONZERO, not evenodd. The circles that build each form are overlapping
+   subpaths: under evenodd every overlap would cancel and the form would come
+   out as a lace of rings. Under nonzero, subpaths wound the same way union
+   into one solid shape. */
+.morph-pebble { fill-rule: nonzero; }
+
+
+/* ------------------------------------------------------------------------
+   THE WORKS INDEX
+   Four columns naming every work, under the rail that shows them.
+   ------------------------------------------------------------------------ */
+.works-index {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0 1.6rem;
+  padding: 1.4rem 1.6rem 0;
+  width: 100%;
+  align-items: start;
+}
+
+.works-index-col {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  /* A grid track will not shrink below its content unless it is told to, so
+     without this the nowrap titles pushed the fourth column off the page. */
+  min-width: 0;
+}
+
+.works-index-item {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5em;
+  font-family: var(--font-poster-display);
+  font-size: 0.78rem;
+  line-height: 1.62;
+  color: #D4FF00;
+  cursor: pointer;
+  transition: opacity 0.14s ease;
+}
+/* Hover cannot be another colour any more — there is one yellow now — so it
+   is carried by weight of ink instead. */
+.works-index-item { opacity: 0.78; }
+.works-index-item:hover { opacity: 1; }
+
+.works-index-num {
+  flex: 0 0 auto;
+  font-style: italic;
+  /* sampled off the entry page — the same #b6c7ea the forms and the side
+     panel are drawn in, not the old turquoise */
+  color: #b6c7ea;
+  min-width: 1.9em;
+}
+
+.works-index-title {
+  min-width: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .works-index { grid-template-columns: repeat(2, 1fr); }
+}
+
+
+/* ==========================================================================
+   SCANNED
+   Three layers over the whole page, in this order: a halftone dot screen, a
+   fine horizontal scan ruling, and a paper-grain tile. Together they read as
+   something printed and then put through a scanner rather than something
+   drawn in a browser.
+
+   NO feTurbulence anywhere in here. It is the obvious way to make noise in
+   SVG and it locks up Safari on macOS on this project — so the grain is a
+   real 96x96 PNG tile, generated once and inlined, and the rest is plain
+   gradients. It costs nothing to composite and it cannot hang.
+   ========================================================================== */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  pointer-events: none;   /* it must never eat a click */
+  background-image:
+    /* halftone: a fine dot screen, almost subliminal */
+    radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.24) 0.85px, transparent 1.05px),
+    /* scan ruling: the faint horizontal banding a flatbed leaves */
+    repeating-linear-gradient(to bottom,
+      rgba(0, 0, 0, 0.055) 0px,
+      rgba(0, 0, 0, 0.055) 1px,
+      rgba(255, 255, 255, 0.045) 1px,
+      rgba(255, 255, 255, 0.045) 3px),
+    /* paper tooth */
+    url("data:image/png;base64,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");
+  background-size: 3px 3px, 100% 3px, 96px 96px;
+  background-repeat: repeat, repeat, repeat;
+  mix-blend-mode: multiply;
+  opacity: 0.78;
+}
+
+/* Multiply over a dark ground only muddies it, so the works section — which
+   is black — takes the grain as a lift instead. */
+body.stage-works::after {
+  mix-blend-mode: soft-light;
+  opacity: 0.75;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::after { opacity: 0.4; }
+}
+
+
+/* ==========================================================================
+   THE CV PAGE — A STUDIO INFORMATION PAGE
+   One fixed bar across the top: the name, the two rooms of the site with a
+   bar under the one you are in, and the way out. Under it a large statement
+   takes two thirds of the width with a work beneath it; the particulars sit
+   in two narrow columns on the right, divided off by a hairline. Black
+   ground, the site's yellow ink throughout, the works' blue for dates.
+   ========================================================================== */
+.cv-page {
+  --cv-ink: #D4FF00;
+  --cv-blue: #b6c7ea;
+  --cv-rule: rgba(212, 255, 0, 0.42);
+  --cv-bar-h: 3.1rem;
+  position: fixed;
+  inset: 0;
+  z-index: 800;
+  background: #000000;
+  color: var(--cv-ink);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: none;
+  padding: 0;
+  font-family: var(--font-helvetica);
+}
+.cv-page.active { display: block; }
+.cv-page a { color: inherit; text-decoration: underline; text-underline-offset: 0.16em; text-decoration-thickness: 1px; }
+
+/* ---- the bar -------------------------------------------------------------- */
+.cv-bar {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  height: var(--cv-bar-h);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0 1rem;
+  background: #000000;
+  border-bottom: 1px solid var(--cv-rule);
+  font-size: 1.35rem;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+.cv-bar-name { justify-self: start; }
+.cv-bar-tabs { justify-self: center; display: flex; align-items: center; gap: 0.35em; height: 100%; }
+.cv-bar-slash { opacity: 0.9; }
+.cv-bar-tab,
+.cv-bar-close {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+}
+.cv-bar-tab { position: relative; height: 100%; display: flex; align-items: center; }
+.cv-bar-tab:hover { opacity: 0.7; }
+/* the room you are in: a thick bar sitting on the hairline */
+.cv-bar-tab.is-active { cursor: default; }
+.cv-bar-tab.is-active:hover { opacity: 1; }
+.cv-bar-tab.is-active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 5px;
+  background: var(--cv-ink);
+}
+.cv-bar-close { justify-self: end; }
+.cv-bar-close:hover { opacity: 0.7; }
+
+/* ---- the page ------------------------------------------------------------- */
+.cv-page-inner {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  min-height: calc(100% - var(--cv-bar-h));
+  max-width: none;
+  margin: 0;
+}
+.cv-main { border-right: 1px solid var(--cv-rule); min-width: 0; }
+
+.cv-statement {
+  margin: 0;
+  padding: 0.9rem 1rem 1.2rem;
+  font-size: clamp(1.7rem, 3.15vw, 3.6rem);
+  line-height: 1.1;
+  letter-spacing: -0.012em;
+  font-weight: 400;
+  border-bottom: 1px solid var(--cv-rule);
+}
+.cv-plate { margin: 0; }
+.cv-plate img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+/* The portrait is tall and the column is wide: at full width it would run
+   nearly two screens. On a wide screen it is framed to one screen's height,
+   held on the face and the gesture; on a phone it is shown whole. */
+@media (min-width: 901px) {
+  .cv-plate img {
+    height: calc(100vh - var(--cv-bar-h));
+    min-height: 32rem;
+    object-fit: cover;
+    object-position: 50% 44%;
+  }
+}
+
+.cv-side {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-content: start;
+  gap: 0 1.2rem;
+  padding: 1.05rem 1rem 3rem;
+  font-size: 0.8rem;
+  line-height: 1.3;
+  min-width: 0;
+}
+.cv-col { min-width: 0; }
+.cv-block { margin: 0 0 1.9rem; }
+.cv-label {
+  margin: 0 0 0.9rem;
+  font-size: 0.8rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.cv-item { margin: 0 0 0.85rem; }
+.cv-when { color: var(--cv-blue); }
+.cv-info { grid-column: 1 / -1; margin-top: 0.6rem; }
+.cv-info p { margin: 0; max-width: 40em; }
+
+@media (max-width: 900px) {
+  .cv-bar { font-size: 1rem; padding: 0 0.8rem; }
+  .cv-page-inner { grid-template-columns: 1fr; }
+  .cv-main { border-right: none; }
+  .cv-side { border-top: 1px solid var(--cv-rule); padding-top: 1rem; }
+}
+@media (max-width: 520px) {
+  .cv-bar-name { font-size: 0.8rem; }
+  .cv-side { grid-template-columns: 1fr; }
+}
+
+/* The flecks printed over the forms — a second ink, not holes in the first. */
+.morph-pebble-mark {
+  fill: #14161C;
+  stroke: none;
+  opacity: 0.88;
+}
+
+
+/* ==========================================================================
+   THE SECOND COLOURWAY
+   The reference prints the same shapes twice, on two different grounds: a
+   pink page with red and dark green on it, and an olive page with dark green
+   and pink. The canvas toggle switches between exactly those two — it is the
+   reference's own pair, not a colour scheme invented next to it.
+
+   Everything here has to be !important because the first colourway is, and
+   these come later with the same specificity.
+   ========================================================================== */
+body.light-poster-canvas:not(.stage-works) .poster-masthead {
+  background: #82792F !important;   /* the olive ground */
+}
+
+/* The same slab in the cold ink: the pattern is neutral enough to carry
+   both, so only the atmosphere around it changes. */
+body.light-poster-canvas .morph-pebble:nth-child(4n+1) { fill: url(#stone-ink-a) !important; }
+body.light-poster-canvas .morph-pebble:nth-child(4n+2) { fill: url(#stone-ink-b) !important; }
+body.light-poster-canvas .morph-pebble:nth-child(4n+3) { fill: url(#stone-ink-a) !important; }
+body.light-poster-canvas .morph-pebble:nth-child(4n)   { fill: url(#stone-ink-b) !important; }
+
+/* The hoops go behind everything, so they take the other ground tone —
+   the same role the olive plays in the first colourway. */
+body.light-poster-canvas .morph-comp-ring {
+  stroke: #161C2C !important;
+}
+
+
+body.light-poster-canvas .morph-satellite-dot { fill: #123C1E !important; }
+
+/* The dots in the standing line are the ground colour by definition, so
+   they follow it. */
+body.light-poster-canvas .edition-dot {
+  background: #82792F !important;
+}
+
+/* The name and the CV keep the red in both — it is the one thing that does
+   not move between the two pages. */
+body.light-poster-canvas .poster-hero-name-full .hl,
+body.light-poster-canvas .hero-cv-link .hl {
+  background: #EE2E24 !important;
+  color: #FFFFFF !important;
+}
+
+
+/* ==========================================================================
+   THE GRID, THE DARK ZONE AND THE CIRCLE BAND
+   The canvas is now a ruled page split across one line: dark above it, light
+   below, with the run of circles riding the line itself. Everything here is
+   painted as the masthead's own background, which puts it behind the artwork
+   without any stacking to argue about.
+   ========================================================================== */
+/* THE GROUND: a riso gradient with tooth on it.
+   The gradient starts at the TOP EDGE OF THE STANDING LINE at the foot of
+   the page — measured, not guessed: that edge sits 6.7vh above the bottom,
+   so the first stop is held there and everything below it is covered by the
+   band itself. From there the ink lightens all the way up the page.
+   The low end is the OLIVE, not the red: the forms are red and dark green,
+   and a red ground swallowed every red form that travelled down into it.
+   Olive is the reference's own second ground tone and collides with neither.
+   The ground carries the gradient and nothing else — the texture is a layer
+   of its own now, over the top of everything. */
+/* THE FIELD.
+   The red-orange is a BACKLIGHT coming from behind the objects, bleeding
+   into an off-white / pale silver field. The ground itself carries almost
+   nothing: a faint warmth low and left where the mass sits, and every bit of
+   real heat is thrown by the forms themselves. */
+/* THE GROUND. Deep black, with the faintest lift of charcoal low and left
+   so the field is not a dead flat panel — the reference's paper is not one
+   value either. */
+body:not(.stage-works) .poster-masthead {
+  background-image:
+    radial-gradient(96% 84% at 26% 64%,
+      #17181A 0%,
+      #0C0D0E 58%,
+      #070708 100%) !important;
+  background-repeat: no-repeat !important;
+  background-size: 100% 100% !important;
+  background-color: #08090A !important;
+}
+
+/* NOT IN THE REFERENCE. This cold version is the "try both" from earlier —
+   it is the same measured ramp with the hue turned, kept only because it was
+   asked for before this rule. */
+body.light-poster-canvas:not(.stage-works) .poster-masthead {
+  background-image:
+    radial-gradient(90% 80% at 22% 62%,
+      rgba(40, 110, 255, 0.16) 0%,
+      rgba(40, 110, 255, 0) 70%),
+    linear-gradient(to right, #C6C8CC 0%, #D3D5D9 46%, #E0E1E4 100%) !important;
+  background-color: #D3D5D9 !important;
+}
+body.light-poster-canvas .morph-pebble-bloom { fill: #1E6BFF; }
+body.light-poster-canvas .morph-pebble-rim   { fill: #3F8CFF; }
+
+
+/* ==========================================================================
+   THE FIELD SITS BELOW THE NAME
+   Above the name there is one thing only: the run of circles, stretched the
+   full width of the canvas. The cords and the shapes all live underneath it.
+   Clipping would have cut the forms off mid-travel, so the SVG itself is
+   moved down and shortened instead — the composition is laid out in the
+   canvas's own coordinates, so it simply re-fits into the shorter box.
+   ========================================================================== */
+/* Full canvas again. The split is in the ARTWORK now, not in the element:
+   the hoops are laid out across the top of the composition and the shapes
+   and cords across the bottom of it, so nothing has to be clipped and no
+   form is cut in half as it travels. */
+body:not(.stage-works) .hero-animation-centerpiece {
+  inset: 0 !important;
+  height: 100% !important;
+}
+
+/* The extra run of circles above the name is gone: it was never what was
+   wanted there — the hoops are. */
+.hero-dot-band { display: none !important; }
+
+/* The speckle mask is off the ink: the texture is a scan over the whole
+   page now, not an erosion baked into each form. */
+#morph-pebbles-group {
+  mask: none !important;
+  -webkit-mask: none !important;
+}
+
+/* ==========================================================================
+   THE PRINTED SCAN
+   The old CSS tile grain is off: the texture is procedural now, two
+   turbulence layers thresholded hard so the noise lands as stipple rather
+   than fog — see .riso-grain below.
+   ========================================================================== */
+.hero-scan { display: none !important; }
+
+
+
+/* No blur: the symbols are her drawings now, and any softening at all
+   fogged the line work. They are drawn exactly as cut. */
+#morph-pebbles-group {
+  filter: none;
+}
+
+/* ==========================================================================
+   BACKLIT METAL
+   Four layers, one path. Far bloom and hot rim behind the form, the form
+   itself, and the bevel over it.
+   ========================================================================== */
+
+/* 1. FAR BLOOM — the heat thrown onto the field. Blown well out, so it reads
+      as light in the air around the object rather than as an outline. */
+/* The bloom is acid now and much weaker: on a black ground a wide halo just
+   greys the field. It is there to separate one black body from another. */
+.morph-pebble-bloom {
+  fill: #D4FF00;
+  filter: url(#backlight-far);
+  opacity: 0;
+}
+
+/* 2. HOT RIM — the same path, barely blurred and much brighter. Because it
+      sits directly under the form and the form is very slightly smaller than
+      its own blur, what survives is a hard-edged line of fire around the
+      silhouette: rim light, exactly as a source behind an object gives. */
+/* The rim is the one thing that makes a black silhouette read on black: a
+   hard acid line right on the contour. */
+.morph-pebble-rim {
+  /* A light form on a dark ground separates on its own; the backlight was
+     only ever there to rescue black-on-black. */
+  fill: #D4FF00;
+  filter: url(#backlight-near);
+  opacity: 0;
+}
+
+/* 3. THE MATERIAL. A smooth gradient and one inner shadow. No stroke on the
+      body: the contour is the fill's own edge, continuous and unbroken. */
+.morph-pebble, .morph-pebble path {
+  stroke: none;
+  /* No filter. `iron-grit` finished on an overlay blend, and overlay against
+     a light fill LIGHTENS it: on #b6c7ea it washed the blobs almost to
+     white. The page-wide riso layers still carry the print texture. */
+  filter: none !important;
+  mix-blend-mode: normal !important;
+}
+
+/* 4. THE SPECULAR. One unbroken stroke painted with a gradient that is
+      bright at the top left and fully transparent past the middle, so the
+      highlight appears where the light would fall and fades out on its own.
+      Nothing is dashed and nothing is scattered. */
+.morph-pebble-bevel {
+  fill: none;
+  stroke: #8C9BC0;
+  stroke-width: 0.6;
+  opacity: 0.35;
+}
+
+/* ==========================================================================
+   THE RIGHT-HAND PANEL
+   A quarter of the width, full height, sitting above the morph field and
+   below the type — so the name and the CV still read over it and the CV is
+   still clickable, which it would not be if the panel took the pointer.
+   The grain layer sits above it too, so the panel is scanned with
+   everything else rather than looking pasted on.
+   ========================================================================== */
+.hero-side-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  /* A sidebar, not a second page. */
+  width: 13%;
+  bottom: var(--band-top);   /* the standing line at the foot is left alone */
+  z-index: 4;
+  pointer-events: none;
+  overflow: hidden;
+}
+.hero-side-panel svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* The panel is the reference's own composition and does not turn with the
+   cold option — only the field around it does. */
+
+/* The type and the two controls have to clear the panel explicitly. They did
+   happen to paint above it, but only because of where they sit in the tree —
+   and a stacking accident is not something to leave a clickable CV resting
+   on. */
+body:not(.stage-works) .hero-name-below,
+body:not(.stage-works) .poster-hero-name-full,
+body:not(.stage-works) .hero-cv-link,
+body:not(.stage-works) .poster-canvas-toggle-btn {
+  z-index: 8 !important;
+  position: relative;
+}
+
+/* ==========================================================================
+   THE COLUMN'S MICRO-MOTION
+   All of it is slow enough that you notice it only if you stop and look:
+   a dash crawling, a block breathing, the wireframe lifting and settling.
+   Nothing loops fast enough to pull the eye off the field.
+   ========================================================================== */
+
+
+
+/* The blocks and the frame are STATIC. Nothing rectangular in this column
+   breathes, drifts or transitions. The only motion left is the dash crawling
+   along the track, which is a path and not a block. */
+
+
+
+
+/* ==========================================================================
+   THE STANDING LINE, RE-SKINNED TO THE COLUMN
+   Off-white ground with a mint block let into it and a crisp vermillion rule
+   along the top edge — the column's own three moves, at the foot of the page.
+   ========================================================================== */
+.hero-edition-line[class] {
+  background-image:
+    linear-gradient(to right,
+      #8CCCA0 0%, #8CCCA0 22%,
+      rgba(140, 204, 160, 0) 22%, rgba(140, 204, 160, 0) 100%),
+    linear-gradient(to right, #ECECEA 0%, #E0E0DD 62%, #E8E8E6 100%) !important;
+  background-color: #E8E8E6 !important;
+  border-top: 6px solid #EC2C24 !important;
+}
+
+/* Typography to the column's editorial system: grotesque, uppercase, bold,
+   tracked in rather than out — the same voice as the counts in the strip. */
+.hero-edition-line .edition-big[class] {
+  font-family: Helvetica, Arial, sans-serif !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: -0.012em !important;
+  color: #141414 !important;
+  background: transparent !important;
+}
+.hero-edition-line .edition-thin[class] {
+  font-weight: 700 !important;
+  letter-spacing: 0.02em !important;
+  opacity: 0.62;
+}
+
+/* the dots take the vermillion, the two resolved ones take the ink */
+.edition-dot[class] {
+  background: #EC2C24 !important;
+}
+.edition-dot-one[class] {
+  background: #141414 !important;
+}
+
+
+/* ==========================================================================
+   THE STANDING LINE'S DOTS
+   The old run was one absolutely-positioned layer spanning the whole band,
+   so wherever a word happened to fall the dots ran straight through it —
+   behind the letterforms, but through them all the same. It is gone.
+   The dots are now real flex items BETWEEN the three words: they can only
+   ever sit in the gaps, at any width, because the layout itself puts them
+   there. They still swell from small to large and back, which is the run
+   that was there before, just confined to where it belongs.
+   ========================================================================== */
+.edition-dots { display: none !important; }
+
+.edition-sep {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.34em;
+  padding: 0 1.1em;
+  font-size: clamp(1rem, 3.4vw, 2.6rem);   /* the band's own scale */
+}
+/* Every dot the same size now. They have to be, because the run collapses
+   into ONE circle and five different sizes cannot merge into one. */
+.edition-sep i {
+  --step: 0.82em;          /* the gap between two dots, centre to centre */
+  --throw: 1.5em;          /* how far the merged circle swings each way */
+  --merge-o: 0;            /* the outer four vanish while merged */
+  --merge-s: 1;
+  display: block;
+  width: 0.5em;
+  height: 0.5em;
+  border-radius: 50% !important;
+  background: #141414;
+  /* each dot starts its run a little after the one before it: that offset
+     is what makes the collapse read as a gathering rather than a snap */
+  animation: sep-run 5.4s infinite;
+  animation-delay: calc(var(--i) * 80ms);
+}
+/* the one that survives the merge, and swells into the single circle */
+.edition-sep i.sep-core {
+  --merge-o: 1;
+  --merge-s: 1.5;
+  background: #141414;
+}
+
+/*  Phase 1  drift and collapse, eased in and out of the move, gathering on
+             the right until only the core is left.
+    Phase 2  the merged circle swings the other way on a curve that
+             overshoots and settles, and the run separates out behind it.
+    The first and last frames are identical, so the loop has no seam. */
+@keyframes sep-run {
+  0% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
+  }
+  30% {
+    transform: translateX(calc(var(--k) * -1 * var(--step) + var(--throw))) scale(1);
+    opacity: 1;
+    animation-timing-function: linear;
+  }
+  36%, 46% {
+    transform: translateX(calc(var(--k) * -1 * var(--step) + var(--throw))) scale(var(--merge-s));
+    opacity: var(--merge-o);
+    animation-timing-function: cubic-bezier(0.34, 1.32, 0.48, 1);
+  }
+  68% {
+    transform: translateX(calc(var(--k) * -1 * var(--step) - var(--throw))) scale(var(--merge-s));
+    opacity: var(--merge-o);
+    animation-timing-function: linear;
+  }
+  74% {
+    transform: translateX(calc(var(--k) * -1 * var(--step) - var(--throw))) scale(1);
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  100% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .edition-sep i { animation: none; }
+}
+
+@media (max-width: 760px) {
+  .edition-sep { padding: 0 0.5em; gap: 0.22em; }
+}
+
+/* the dotted track crawls; the blocks and the frame stay still */
+.panel-track {
+  stroke-dashoffset: 0;
+  animation: panel-crawl 26s linear infinite;
+}
+@keyframes panel-crawl {
+  to { stroke-dashoffset: -71.1; }   /* a whole number of dash periods */
+}
+.panel-states rect { fill: none; }
+body[data-comp="strewn"]  #panel-state-0,
+body[data-comp="rows"]    #panel-state-1,
+body[data-comp="cluster"] #panel-state-2,
+body[data-comp="current"] #panel-state-3 { fill: #EC2C24; }
+
+@media (prefers-reduced-motion: reduce) {
+  .panel-track { animation: none; }
+}
+
+/* ==========================================================================
+   RISO GRAIN
+   Fixed over everything, never takes a click. The acid layer is screened so
+   it can only lighten, the burn layer multiplied so it can only darken —
+   between them the edges crush the way a high-contrast scan crushes them.
+   ========================================================================== */
+.riso-grain {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 9200;
+  pointer-events: none;
+}
+/* Fine and light. The heavy coarse pass read as dirt on the lens; film
+   grain is small and it MOVES, which is what stops the eye reading it as
+   damage on the page. The seeds are stepped from JS — see initRisoFlicker. */
+.riso-layer-acid {
+  mix-blend-mode: screen;
+  opacity: 0.07;
+}
+.riso-layer-burn {
+  mix-blend-mode: multiply;
+  opacity: 0.26;
+}
+.riso-layer-burn2 {
+  mix-blend-mode: hard-light;
+  opacity: 0.08;
+}
+
+/* ==========================================================================
+   THE COLUMN INVERTS AGAINST THE STAGE
+   The field is dark, so the column is light — periwinkle ground, dark type
+   and marks. Flip the canvas to its light mode and the two swap over, which
+   is what keeps the split reading as one decision rather than two panels
+   that happen to differ.
+   ========================================================================== */
+.hero-side-panel svg > rect:first-of-type { fill: #B6C7EA; }
+.hero-side-panel .panel-block[fill="#303034"] { fill: #1A1F2E; }
+.hero-side-panel .panel-block[fill="#8CCCA0"] { fill: #1A1F2E; opacity: 0.16; }
+.hero-side-panel .panel-frame { stroke: #1A1F2E !important; }
+.hero-side-panel .panel-frame circle { fill: #1A1F2E !important; }
+.hero-side-panel .panel-track { stroke: #1A1F2E !important; }
+.hero-side-panel text { fill: #1A1F2E !important; }
+.hero-side-panel .panel-states rect { stroke: #1A1F2E !important; }
+body[data-comp="strewn"]  #panel-state-0,
+body[data-comp="rows"]    #panel-state-1,
+body[data-comp="cluster"] #panel-state-2,
+body[data-comp="current"] #panel-state-3 { fill: #1A1F2E !important; }
+.hero-side-panel g[transform] path[fill="#E8E8E8"] { fill: #B6C7EA; }
+.hero-side-panel g[transform] path[fill="#8CCCA0"] { fill: #B6C7EA; }
+
+/* and the other way round when the stage goes light */
+body.light-poster-canvas .hero-side-panel svg > rect:first-of-type { fill: #0C0D0E; }
+body.light-poster-canvas .hero-side-panel .panel-block[fill="#303034"] { fill: #D4FF00; opacity: 0.2; }
+body.light-poster-canvas .hero-side-panel .panel-frame,
+body.light-poster-canvas .hero-side-panel .panel-track { stroke: #D4FF00 !important; }
+body.light-poster-canvas .hero-side-panel .panel-frame circle { fill: #D4FF00 !important; }
+body.light-poster-canvas .hero-side-panel text { fill: #D4FF00 !important; }
+body.light-poster-canvas .hero-side-panel .panel-states rect { stroke: #D4FF00 !important; }
+body.light-poster-canvas[data-comp="strewn"]  #panel-state-0,
+body.light-poster-canvas[data-comp="rows"]    #panel-state-1,
+body.light-poster-canvas[data-comp="cluster"] #panel-state-2,
+body.light-poster-canvas[data-comp="current"] #panel-state-3 { fill: #D4FF00 !important; }
+body.light-poster-canvas .hero-side-panel g[transform] path[fill="#E8E8E8"] { fill: #0C0D0E; }
+body.light-poster-canvas .hero-side-panel g[transform] path[fill="#8CCCA0"] { fill: #0C0D0E; }
+
+.hero-edition-line[class] {
+  background-image: linear-gradient(to right, #0C0D0E 0%, #08090A 100%) !important;
+  background-color: #08090A !important;
+  border-top: none !important;
+}
+.hero-edition-line .edition-big[class] { color: #D4FF00 !important; }
+/* i[class] only ever matched .sep-core — the other four dots carry no class
+   attribute at all, so they kept the #141414 of the base rule and read as
+   black holes in the band. All five take the light blue of the forms. */
+.edition-sep i { background: #b6c7ea !important; }
+.edition-sep i.sep-core { background: #b6c7ea !important; }
+
+/* the name and the CV: acid block, black letters */
+.poster-hero-name-full .hl,
+.hero-cv-link .hl {
+  background: #D4FF00 !important;
+  color: #000000 !important;
+}
+
+/* The column's ground. It sits on the div and not only on the SVG's base
+   rect, so nothing shows the black field through at the edges. */
+.hero-side-panel { background-color: #b6c7ea !important; }
+.hero-side-panel svg > rect:first-of-type { fill: #b6c7ea !important; }
+.hero-side-panel text { fill: #000000 !important; }
+.hero-side-panel .panel-frame,
+.hero-side-panel .panel-track { stroke: #000000 !important; }
+.hero-side-panel .panel-frame circle { fill: #000000 !important; }
+.hero-side-panel .panel-states rect { stroke: #000000 !important; }
+body[data-comp="strewn"]  #panel-state-0,
+body[data-comp="rows"]    #panel-state-1,
+body[data-comp="cluster"] #panel-state-2,
+body[data-comp="current"] #panel-state-3 { fill: #000000 !important; }
+body.light-poster-canvas .hero-side-panel { background-color: #0C0D0E !important; }
+
+/* The drawings are part of the column, so they invert with it. */
+body.light-poster-canvas .panel-art [fill="#1A1F2E"],
+body.light-poster-canvas .panel-art use { fill: #B6C7EA; }
+body.light-poster-canvas .panel-art line,
+body.light-poster-canvas .panel-art path[stroke],
+body.light-poster-canvas .panel-art g[stroke] { stroke: #B6C7EA !important; }
+
+/* THE FEATURED WORK, at the foot of the column. */
+.featured-artwork {
+  position: absolute;
+  /* wider and lower than the framed photo it replaces */
+  left: 3%;
+  right: 3%;
+  bottom: 3%;
+  z-index: 2;
+}
+.featured-drawing {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  /* the same rough print the rest of the drawn symbols carry */
+  filter: url(#glyph-grunge);
+}
+
+/* Solid symbols only: no halo, no rim, no bevel. */
+.morph-pebble-bloom,
+.morph-pebble-rim,
+.morph-pebble-bevel { display: none !important; }
+
+
+/* ==========================================================================
+   THE CORDS IN THE WORKS INDEX
+   Strung from one work's number to the next along each row. Thin on purpose:
+   this is a line hanging between two posts, not a bar. The droop is written
+   from the same tension value that drives the cords in the field above, so
+   both take up and go slack on the same beat.
+   ========================================================================== */
+#projects-grid { position: relative; }
+.works-cords {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;   /* never in the way of a card */
+  /* Under the artwork and under the numbers, over the ground. */
+  z-index: 1;
+}
+.works-cord {
+  fill: none;
+  stroke: #D4FF00;
+  stroke-width: 1.2;
+  stroke-linecap: round;
+}
+
+
+/* The work itself paints over the cord; the cord only ever shows in the gaps
+   between one card and the next. */
+.media-container.works-thumb { z-index: 2; }
+
+
+/* The digits get their own box so the cords can be strung from the ink.
+   .works-num is a block the full width of the card; measuring that put the
+   first anchor in the middle of the card, well to the right of "01", and the
+   chain appeared to start in mid-air with the first number left hanging. */
+.works-num-ink {
+  display: inline-block;
+  line-height: 1;
+}
+
+
+/* ==========================================================================
+   ONE GROUND BEHIND ALL THE WORKS
+   Every card used to paint its own box — the base .media-container laid down
+   #000, .works-thumb laid down var(--bg-main) over it, and a per-card radial
+   gradient went on top of that. Three grounds, one per card, each with its
+   own light falloff: that is what drew the hard rectangles and the seams
+   between them, and why the cards at the edges stayed flat black while the
+   middle ones did not.
+   The cards carry nothing now. The tone belongs to the section they sit in
+   and the grain to the scan over the whole page, so one continuous ground
+   runs behind every work with nothing cut out of it.
+   ========================================================================== */
+.projects-grid.works-rail-track,
+.project-item.works-card,
+.media-container.works-thumb,
+.media-container.works-thumb img,
+.media-container.works-thumb video,
+.media-container.works-thumb .thumb-img,
+.media-container.works-thumb .hover-video-loop {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+
+/* ==========================================================================
+   THE BAKED-IN BLACK DROPS OUT
+   Several works are files with black already in them, so clearing the CSS
+   box left them as dark rectangles anyway. screen blends each work with what
+   is under it — result = 1-(1-a)(1-b) — so black goes to the backdrop
+   exactly and everything lighter is kept. That only works because the ground
+   here IS near-black (#08090A, about 3% luminance): screen lifts the artwork
+   by that 3% and no more. On a light page this would wash every work out.
+
+   It goes on the CONTAINER, not the <img>. .works-thumb is positioned and
+   z-indexed for the cords, which makes it a stacking context, and a blend
+   mode set on a child only blends within its own group — against a
+   transparent box that is a no-op and the black would have stayed.
+   ========================================================================== */
+/* Scoped to the dark canvas on purpose. The light mode grounds this section
+   on a pale colour, and screen against a light backdrop drives every work
+   towards white — the whole trick depends on the ground being near-black. */
+body:not(.light-poster-canvas) .media-container.works-thumb {
+  mix-blend-mode: screen;
+}
+
+
+/* The column reads as a short note now rather than a read-out. Set in the
+   panel's own ink, at the size the rest of its marginal type was. */
+.panel-bio {
+  position: absolute;
+  left: 7%;
+  right: 7%;
+  /* Below the CV chip, which sits over this column from the masthead row and
+     cannot move. At the larger size the block no longer fits above it. */
+  top: 43%;
+  z-index: 2;
+  /* The column's rules and its dotted track run the full height — they were
+     drawn around type that is no longer there — so the block carries a ground
+     of its own and the line work stops behind it.
+     That ground is the page's black, not the panel's blue: the acid yellow
+     asked for here sits at about 1.5:1 against #b6c7ea, which is not a
+     contrast anyone can read a paragraph at. On the black it is the same
+     acid-on-dark the name chip, the CV chip and the standing line all use. */
+  background: #0C0D0E;
+  padding: 0.6rem 0.55rem 0.65rem;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 500;
+  line-height: 1.55;
+  letter-spacing: 0.012em;
+  color: #D4FF00;
+  text-align: left;
+}
+.panel-bio p { margin: 0; }
+/* A bold lead-in, then running text — the same two-weight setting as the
+   reference, so the block has an entry point instead of one flat grey. */
+.panel-bio strong {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+
+/* ==========================================================================
+   DELETING A DESCRIPTION
+   A destructive control asks once before it acts, and leaves a way back for
+   half a minute afterwards. Red only on the two buttons that actually
+   destroy something — the question itself stays in the sidebar's yellow.
+   ========================================================================== */
+.modal-desc-danger[class] {
+  color: #FF4D5E;
+  border-color: rgba(255, 77, 94, 0.45) !important;
+}
+.modal-desc-danger[class]:hover {
+  color: #0a0a0c;
+  background: #FF4D5E;
+  border-color: #FF4D5E !important;
+  opacity: 1;
+}
+.modal-desc-confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.modal-desc-confirm[hidden] { display: none; }
+.modal-desc-ask {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  opacity: 0.85;
+}
+/* The way back reads as the live thing in the row while it is offered. */
+.modal-desc-undo[class] {
+  opacity: 1;
+  color: #0a0a0c;
+  background: #D4FF00;
+  border-color: #D4FF00 !important;
+}
+.modal-desc-undo[hidden] { display: none; }
+
+
+/* ==========================================================================
+   THE PROJECT PAGE, RESTACKED
+   The work is the page: it sits centred at the top, on its own, and every
+   line of type about it comes underneath. The old arrangement stood a fixed
+   270px column of text beside the media, which at any real viewport meant a
+   narrow gutter of type running down the side of the picture.
+   ========================================================================== */
+#project-modal .modal-split-container[class] {
+  grid-template-columns: 1fr;   /* one column: the work, then the words */
+  /* The work sits in equal air: 40px above it (24px of card padding plus the
+     16px this container adds) and the same 40px below it before the first
+     line of type. Measured, not guessed — the two were 40 and 18. */
+  gap: 2.5rem;
+  align-items: stretch;
+}
+#project-modal .modal-media-column[class] {
+  grid-column: 1;
+  order: 1;
+  align-items: center;          /* the work is centred in the page */
+}
+#project-modal .modal-media-wrapper-relative[class],
+#project-modal .modal-gallery-single[class] {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+/* The year and format already run in the stamp under the title. Carrying
+   them above the work as well put type back on top of the page. */
+#project-modal .modal-top-right-meta { display: none; }
+
+#project-modal .modal-caption-left[class] {
+  grid-column: 1;
+  order: 2;
+  align-self: stretch;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  display: block;               /* the block is a text column now, not a flex stack */
+  text-align: left;
+  margin-bottom: 0 !important;  /* alignCaptionToMedia has nothing left to align to */
+}
+
+/* ---- the two columns ---------------------------------------------------
+   The heading runs the full measure and the body breaks under it, which is
+   what column-span is for. Two columns keep the line length inside the range
+   a paragraph is actually read at — one column at this width would run to
+   well over 120 characters a line. */
+#project-modal .modal-caption-lines[class] {
+  column-count: 2;
+  column-gap: 3rem;
+  column-fill: balance;
+  text-align: left;
+  width: 100%;
+}
+#project-modal .modal-caption-emblem,
+#project-modal .modal-work-no,
+#project-modal .modal-work-title,
+#project-modal .modal-work-stamp,
+#project-modal .modal-edit-actions,
+#project-modal .modal-caption-edit {
+  column-span: all;
+}
+/* The heading is centred over the two columns it spans. */
+#project-modal .modal-caption-emblem { justify-content: center; }
+#project-modal .modal-work-no,
+#project-modal .modal-work-title,
+#project-modal .modal-work-stamp { text-align: center; }
+#project-modal .modal-work-credit { text-align: left; }
+#project-modal .modal-work-title { font-size: 1.6rem; margin-bottom: 0.4rem; }
+#project-modal .modal-work-stamp { margin-bottom: 0.9rem; }
+
+/* No hyphenation: a word that does not fit moves whole to the next line.
+   Justified setting without hyphens opens the spaces between words into
+   rivers at this measure, so the text is set flush left, ragged right — the
+   rule that goes with unbroken words. A single word longer than a whole line
+   (a URL) is the only thing still allowed to wrap, rather than overflow. */
+#project-modal .modal-work-body[class] {
+  text-align: left;
+  text-align-last: left;
+  hyphens: none;
+  -webkit-hyphens: none;
+  word-break: normal;
+  overflow-wrap: break-word;
+  /* Set four points down from 1.05rem, at the size asked for, with the
+     leading pulled in to match. Worth knowing what that costs: two columns
+     across a 1350px card are 611px each, and at this size that is about 97
+     characters a line against the 45–75 a paragraph is read at. The measure
+     is fixed by the card's max-width, so the only levers are the type size
+     and the number of columns. */
+  font-size: 0.8rem;
+  line-height: 1.38;
+  orphans: 2;
+  widows: 2;
+}
+#project-modal .modal-work-credit {
+  column-span: all;
+  margin-top: 1rem;
+}
+#project-modal .modal-edit-actions { justify-content: flex-start; margin-top: 1rem; }
+
+@media (max-width: 760px) {
+  /* One column below the fold of a phone: two would be about 20 characters
+     a line, which is not a measure, it is a stack of fragments. */
+  #project-modal .modal-caption-lines[class] { column-count: 1; }
+  #project-modal .modal-work-title { font-size: 1.25rem; }
+}
+
+
+/* The work is capped so the text under it lands above the fold: at 78vh the
+   picture alone filled the screen and everything written about it had to be
+   scrolled to. Half the viewport leaves room for the heading and the first
+   columns of the description without scrolling. */
+#project-modal .modal-gallery-single img[class],
+#project-modal .modal-gallery-single video[class],
+#project-modal .modal-gallery-single img,
+#project-modal .modal-gallery-single video {
+  max-height: min(48vh, 520px) !important;
+}
+
+#project-modal .modal-tools {
+  grid-column: 1;
+  order: 3;            /* after the work and after everything written about it */
+  width: 100%;
+  margin-top: 1.4rem;
+}
+
+/* The mark sits close under the work rather than holding it off. */
+#project-modal .modal-caption-glyph { width: 52px; height: 52px; }
+#project-modal .modal-caption-emblem { margin-bottom: 0; }
+
+/* The frame below the last thing on the page was as deep as the space above
+   the work; it does not need to be. */
+#project-modal .modal-card[class] { padding-bottom: 1rem; }
+
+
+/* ==========================================================================
+   CATALOGUE HIERARCHY
+   The work carries the page and everything else is caption. In a catalogue
+   spread the plate is large and the line under it is tiny, wide-tracked and
+   quiet — the type is there to identify the thing, not to compete with it.
+   Every size below is set against the image, not against the last one.
+   ========================================================================== */
+#project-modal .modal-caption-glyph { width: 30px; height: 30px; }
+
+/* NO. 12 and 2026 · ANIMATION: the identifying line, directly under the mark.
+   Small caps weight, opened right up, on a tight leading so the two sit as
+   one block rather than as two separate statements. */
+#project-modal .modal-work-no,
+#project-modal .modal-work-stamp {
+  font-size: 0.5rem;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  line-height: 1.5;
+  text-indent: 0.3em;          /* tracking adds space after the last letter */
+  opacity: 0.72;
+  margin: 0;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+#project-modal .modal-work-no { margin-top: 0.5rem; }
+#project-modal .modal-work-stamp { margin-bottom: 1.1rem; }
+
+/* The name of the work. Still the largest thing in the caption and still a
+   long way under the picture. */
+#project-modal .modal-work-title[class] {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1.25;
+  margin-bottom: 1.3rem;
+}
+
+#project-modal .modal-work-body[class] {
+  font-size: 0.68rem;
+  line-height: 1.55;
+}
+#project-modal .modal-work-credit {
+  font-size: 0.5rem;
+  letter-spacing: 0.26em;
+  text-indent: 0.26em;
+  opacity: 0.6;
+  margin-top: 1.2rem;
+}
+
+/* With the caption this much smaller there is room to let the plate breathe. */
+#project-modal .modal-gallery-single img,
+#project-modal .modal-gallery-single video {
+  max-height: min(56vh, 600px) !important;
+}
+
+
+/* The caption block is narrower than the plate, the way a catalogue sets the
+   text under its image rather than across the whole spread. That is what
+   makes the measure work at this size: run full width, two columns of 611px
+   at 10.9px type came to 114 characters a line against the 45–75 a paragraph
+   is read at. Capped and centred it is about 64, and the block being narrower
+   than the picture is itself part of the hierarchy. */
+#project-modal .modal-caption-lines[class] {
+  max-width: 46rem;
+  margin-left: auto;
+  margin-right: auto;
+  column-gap: 3rem;
+}
+
+/* Multi-image plates — balanced, centred rows (sized in layoutGalleryRows) */
+#project-modal .modal-gallery-scroll[class] {
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 20px;
+  overflow: visible;
+  width: 100%;
+}
+#project-modal .gallery-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+}
+#project-modal .gallery-card-item[class] {
+  flex: none;
+  max-width: none;
+}
+#project-modal .modal-gallery-scroll .gallery-card-item img,
+#project-modal .modal-gallery-scroll .gallery-card-item video {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  object-fit: contain;
+}
+
+/* Short descriptions: one column at the same measure as each of the two
+   (about 64 characters), centred under the heading, the credit squared to its
+   left edge. Set by fitCaptionColumns once the text is measured. */
+#project-modal .modal-caption-lines.is-single[class] { column-count: 1; }
+#project-modal .modal-caption-lines.is-single .modal-work-body,
+#project-modal .modal-caption-lines.is-single .modal-work-credit {
+  max-width: 21.5rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+/* Two lines or fewer read as a caption, so they are centred like one. */
+#project-modal .modal-caption-lines.is-caption .modal-work-body[class],
+#project-modal .modal-caption-lines.is-caption .modal-work-credit {
+  text-align: center;
+  text-align-last: center;
+}
+
+/* ---- one centred composition -------------------------------------------
+   The work and its text are a single block in the middle of the screen, the
+   same margin (--plate-margin, set by fitPlate) above the work, between the
+   work and the text, and below the text. fitPlate gives the work every pixel
+   the text leaves, so small works grow to fill the height. The upload tools
+   sit after the block, below the fold; the edit buttons sit in the corner,
+   out of the block, until the editor is open. */
+#project-modal .modal-card[class] {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+#project-modal .modal-split-container[class] {
+  flex: 0 0 auto;
+  min-height: 100%;
+  box-sizing: border-box;
+  padding: var(--plate-margin, 40px) 0;
+  row-gap: var(--plate-margin, 40px);
+  align-content: center;
+}
+#project-modal .modal-gallery-single[class] {
+  min-height: 0 !important;
+  background: transparent !important;
+}
+/* Two ids so this outranks the older caps (56vh, then 48vh) and the 280px
+   floors that kept the frame taller than the work inside it — the frame is
+   now exactly the size of the work, so the margins around it are exact. */
+#project-modal #modal-media-wrapper .modal-gallery-single img,
+#project-modal #modal-media-wrapper .modal-gallery-single video {
+  max-height: none !important;
+  max-width: 100% !important;
+  object-fit: contain;
+}
+#project-modal .modal-media-wrapper-relative[class],
+#project-modal .modal-media-column[class],
+#project-modal #modal-media-wrapper {
+  min-height: 0 !important;
+}
+#project-modal .modal-card > .modal-tools {
+  flex: 0 0 auto;
+  margin: 0 0 2rem;
+}
+#project-modal .modal-edit-actions[class] {
+  position: absolute;
+  right: 24px;
+  bottom: 14px;
+  margin: 0;
+  opacity: 0.45;
+  transition: opacity 0.2s;
+}
+#project-modal .modal-edit-actions[class]:hover,
+#project-modal .modal-edit-actions[class]:focus-within { opacity: 1; }
+/* While editing, the buttons belong under the fields they act on. */
+#project-modal .modal-caption-lines:has(#modal-caption-edit:not([hidden])) .modal-edit-actions[class] {
+  position: static;
+  opacity: 1;
+  margin-top: 1rem;
+}
+
+/* DELETE GALLERY ITEM BUTTON */
+.delete-gallery-item-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  font-size: 24px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 100;
+  opacity: 0;
+  transition: opacity 0.2s, background 0.2s, transform 0.2s;
+}
+.gallery-card-item:hover .delete-gallery-item-btn {
+  opacity: 1;
+}
+.delete-gallery-item-btn:hover {
+  background: #ff2a4b;
+  border-color: #ff2a4b;
+  transform: scale(1.1);
+}
+
+/* A single work also carries .gallery-card-item now (for its delete button).
+   Its frame shrinks to the work, so the button sits on the work's own corner
+   and the frame is exactly the size fitPlate gives the work. */
+#project-modal .modal-gallery-single.gallery-card-item[class] {
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+/* The caption sits centred under the work: the mark, the catalogue line, the
+   title, and — in one column — the text itself, set centred line by line.
+   (Two columns stay flush left inside their centred block: centred lines
+   across two columns would lose both edges at once.) */
+#project-modal .modal-caption-left[class] { text-align: center; }
+#project-modal .modal-caption-emblem[class] { display: flex; justify-content: center; }
+#project-modal .modal-caption-lines.is-single .modal-work-body[class],
+#project-modal .modal-caption-lines.is-single .modal-work-credit[class] {
+  text-align: center;
+  text-align-last: center;
+}
+#project-modal .modal-caption-lines:not(.is-single) .modal-work-credit[class] { text-align: center; }
+
+/* The four crop marks at the corners of the page are gone. */
+.poster-crop-mark { display: none !important; }
+
+/* Caption a step down with the work (about a tenth): title, running text and
+   the small lines together, and the measures narrowed in proportion so the
+   line length stays where it was (about 64 characters). */
+#project-modal .modal-work-title[class] { font-size: 0.86rem; margin-bottom: 1.15rem; }
+#project-modal .modal-work-body[class] { font-size: 0.62rem; }
+#project-modal .modal-work-no[class],
+#project-modal .modal-work-stamp[class],
+#project-modal .modal-work-credit[class] { font-size: 0.46rem; }
+#project-modal .modal-caption-glyph { width: 27px; height: 27px; }
+#project-modal .modal-caption-lines[class] { max-width: 42rem; }
+#project-modal .modal-caption-lines.is-single .modal-work-body[class],
+#project-modal .modal-caption-lines.is-single .modal-work-credit[class] { max-width: 19.6rem; }
+
+/* Hover to enlarge (zoomItem): the grow is eased like the rest of the site's
+   motion, the enlarged work sits above its neighbours, and they step back. */
+#project-modal .modal-gallery-scroll .gallery-card-item {
+  position: relative;
+  transition: transform 0.45s cubic-bezier(0.22, 0.7, 0.2, 1), opacity 0.35s ease;
+  will-change: transform;
+}
+#project-modal .modal-gallery-scroll .gallery-card-item.is-zoomed { z-index: 30; }
+#project-modal .modal-gallery-scroll:has(.is-zoomed) .gallery-card-item:not(.is-zoomed) { opacity: 0.28; }
+
+
+/* The delete button stays its own size on an enlarged work instead of
+   growing with it. */
+#project-modal .gallery-card-item.is-zoomed .delete-gallery-item-btn {
+  transform: scale(calc(1 / var(--zoom, 1)));
+  transform-origin: top right;
+}
+
+/* A description or credit not written yet is not shown to the viewer: its
+   placeholder only takes room from the work. The editor still has every field. */
+#project-modal #modal-caption-view .modal-work-body:empty,
+#project-modal #modal-caption-view .modal-work-credit:empty,
+#project-modal #modal-caption-view .modal-work-stamp:empty { display: none; }
+
+/* A single work in the project page grows on hover too, eased the same way. */
+#project-modal #modal-media-wrapper .modal-gallery-single {
+  position: relative;
+  transition: transform 0.45s cubic-bezier(0.22, 0.7, 0.2, 1);
+}
+#project-modal #modal-media-wrapper .modal-gallery-single.is-zoomed { z-index: 30; }
+
+/* ---- the page itself never scrolls or bounces ------------------------------
+   Every section is a fixed panel moved by the stage machine; the document
+   only has to hold them. A stray in-flow element (the toast had lost its
+   styles) made it 22px taller than the screen, so a scroll moved the page AND
+   changed the stage, and the bounce showed the white underneath. */
+html {
+  background-color: #08090A;
+  overscroll-behavior: none;
+}
+html, body { height: 100%; overflow: hidden; }
+body { overscroll-behavior: none; }
+
+/* The toast: a small line of the site's ink, floating at the foot of the
+   screen, out of the page flow. */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 1.6rem;
+  z-index: 10000;
+  transform: translate(-50%, 0.6rem);
+  opacity: 0;
+  pointer-events: none;
+  padding: 0.45rem 0.8rem;
+  background: #0C0D0E;
+  color: #D4FF00;
+  border: 1px solid rgba(212, 255, 0, 0.35);
+  font-family: var(--font-helvetica);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* ==========================================================================
+   CLIENT-READY MODE — the editing / management interface is hidden unless
+   html.edit-mode is set (EDIT_MODE in app.js). Nothing here is deleted: turn
+   edit mode on and every tool below is back exactly as it was.
+   ========================================================================== */
+html:not(.edit-mode) #add-project-btn,
+html:not(.edit-mode) .poster-add-btn,
+html:not(.edit-mode) .card-select-checkbox-wrapper,
+html:not(.edit-mode) .card-select-checkbox,
+html:not(.edit-mode) #floating-selection-bar,
+html:not(.edit-mode) .floating-selection-bar,
+html:not(.edit-mode) #project-picker-overlay,
+html:not(.edit-mode) #card-editor-modal,
+html:not(.edit-mode) #project-modal .modal-edit-actions,
+html:not(.edit-mode) #project-modal .modal-caption-edit,
+html:not(.edit-mode) #project-modal .modal-tools,
+html:not(.edit-mode) #modal-gallery-dropzone,
+html:not(.edit-mode) .modal-gallery-dropzone,
+html:not(.edit-mode) .delete-gallery-item-btn,
+html:not(.edit-mode) #canvas-theme-toggle,
+html:not(.edit-mode) .poster-canvas-toggle-btn,
+html:not(.edit-mode) #grid-count {
+  display: none !important;
+}
+/* The caption reads as text, not as a control. */
+html:not(.edit-mode) #project-modal #modal-caption-view { cursor: default; }
+/* No grab cursors on works that can't be moved. */
+html:not(.edit-mode) .gallery-card-item[draggable],
+html:not(.edit-mode) .works-card { cursor: pointer; }
+
+/* The works page has no title bar for visitors: its only other contents are
+   the editing tools, so in client mode the whole row goes. */
+html:not(.edit-mode) .poster-section-header { display: none !important; }
+
+/* Sideways scrolling stays inside the works row: no rubber-band at its ends
+   and no browser back/forward swipe from it. */
+html, body { overscroll-behavior-x: none; }
+.works-rail { overscroll-behavior: contain; }
+
+/* A wider black margin at both sides of the works page: the row and the
+   list of titles under it share one edge, 3.5rem in from each side (1.5rem
+   on a phone). At the end of the row the same margin is kept after the last
+   work, so neither end of the rail runs to the edge of the screen. */
+.works-rail[class] {
+  padding-left: 3.5rem;
+  padding-right: 3.5rem;
+  scroll-padding-inline: 3.5rem;
+}
+#works-index[class] {
+  padding-left: 3.5rem;
+  padding-right: 3.5rem;
+}
+@media (max-width: 760px) {
+  .works-rail[class] { padding-left: 1.5rem; padding-right: 1.5rem; scroll-padding-inline: 1.5rem; }
+  #works-index[class] { padding-left: 1.5rem; padding-right: 1.5rem; }
+}
+
+/* ==========================================================================
+   MOBILE (≤ 768px) — one place for every phone/tablet-portrait adjustment.
+   Desktop is untouched: everything below lives inside this media query.
+   Same colours, type, grain and motion as desktop; only sizes, spacing and
+   stacking change so the site reads and taps cleanly on a small screen.
+   ========================================================================== */
+@media (max-width: 768px) {
+
+  /* 1 · No sideways overflow anywhere. The page is a stack of fixed panels,
+     so nothing should ever be wider than the screen. */
+  html, body { overflow-x: hidden; max-width: 100%; }
+
+  /* 2 · OPENING PAGE
+     The blue side column keeps its art but drops its bio — at phone width
+     it was 42px wide with one word per line (the bio is in the CV). */
+  .hero-side-panel { width: 16%; }
+  .hero-side-panel .panel-bio { display: none !important; }
+
+  /* The standing line at the foot fits the width: smaller type, tighter
+     dot runs (it ran ~70px off the right edge on a 375px phone). */
+  .hero-edition-line .edition-big[class] { font-size: 3.8vw !important; }
+  .hero-edition-line .edition-sep { padding: 0 0.35em; gap: 0.16em; }
+  .hero-edition-line .edition-sep i { width: 5px; height: 5px; }
+
+  /* The CV button looks the same, but its tap area is a comfortable 44px+. */
+  .hero-cv-link::after {
+    content: '';
+    position: absolute;
+    inset: -10px -10px;
+  }
+
+  /* 3 · CV PAGE — the bar's "Projects" and "Close ×" get full-height tap areas. */
+  .cv-bar-tab, .cv-bar-close { position: relative; }
+  .cv-bar-close::after, .cv-bar-tab::before {
+    content: '';
+    position: absolute;
+    inset: -14px -10px;
+  }
+  .cv-statement { font-size: clamp(1.5rem, 6.4vw, 2.2rem); }
+
+  /* 4 · SHOWREEL — full width. On desktop the reel is held 15.5rem short of
+     the edges to leave room for its flanking labels; on a phone that left a
+     127px-wide video. The labels move above and below it instead. */
+  .main-video {
+    max-width: calc(100vw - 2rem) !important;
+    max-height: 70vh;
+  }
+  .reel-edge-label { transform: none; }
+  .reel-edge-left  { top: 1.4rem; left: 1rem; }
+  .reel-edge-right { top: auto; bottom: 1.4rem; right: 1rem; }
+
+  /* 5 · WORKS — the list of titles becomes one easy-to-tap column with 44px
+     rows; the panel scrolls up and down under the finger (app.js), and the
+     row of works still swipes sideways. */
+  .works-index[class] { grid-template-columns: 1fr; gap: 0; padding-bottom: 6rem; }
+  /* The panel is a centred column with scrolling off on desktop; with a
+     one-column list taller than the phone, centring pushed its top out of
+     reach. On a phone it starts at the top and scrolls. */
+  #portfolio-grid.poster-portfolio-section {
+    justify-content: flex-start !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+  /* …and its parts keep their own height instead of being squeezed to fit */
+  #portfolio-grid.poster-portfolio-section > * { flex-shrink: 0; }
+  .works-index-item {
+    min-height: 44px;
+    align-items: center;
+    font-size: 0.86rem;
+    border-bottom: 1px solid rgba(212, 255, 0, 0.12);
+  }
+
+  /* 6 · PROJECT PAGE — the whole screen, not a framed window: the work is as
+     big as the phone allows (fitPlate sizes it from this card). */
+  #project-modal.modal-overlay { padding: 0 !important; }
+  #project-modal .modal-card[class] {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    border-radius: 0 !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    /* a strip at the foot is kept for the prev/next arrows, so the work and
+       its caption are laid out above them, never under them */
+    padding-bottom: 4.2rem !important;
+  }
+  /* readable caption on a phone */
+  #project-modal .modal-work-title[class] { font-size: 1.05rem; }
+  #project-modal .modal-work-body[class] { font-size: 0.8rem; line-height: 1.5; }
+  #project-modal .modal-work-no[class],
+  #project-modal .modal-work-stamp[class],
+  #project-modal .modal-work-credit[class] { font-size: 0.6rem; }
+  #project-modal .modal-caption-lines[class],
+  #project-modal .modal-caption-lines.is-single .modal-work-body[class],
+  #project-modal .modal-caption-lines.is-single .modal-work-credit[class] { max-width: 100%; }
+  /* previous / next sit in the bottom-right corner, off the work */
+  .modal-arrows-side {
+    top: auto !important;
+    bottom: 0.9rem;
+    right: 0.9rem !important;
+    transform: none !important;
+    flex-direction: row;
+    gap: 0.6rem;
+  }
+  .tiny-arrows-indicator { display: none !important; }
+}
+
+/* Small phones: the works list stays one column; tablets in portrait keep two. */
+@media (min-width: 481px) and (max-width: 768px) {
+  .works-index[class] { grid-template-columns: 1fr 1fr; gap: 0 1.2rem; }
+}
+
+/* The opening animation spans the whole screen at every width. An older rule
+   for ≤900px pinned it to a 280×148px box from an earlier layout, so on
+   phones and tablets it sat in a strip with the screen edges empty. */
+@media (max-width: 900px) {
+  body:not(.stage-works) .hero-animation-centerpiece {
+    width: 100% !important;
+    margin: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+  }
+}
+
+/* ==========================================================================
+   MOBILE (≤ 768px), ROUND 2
+   ========================================================================== */
+@media (max-width: 768px) {
+  /* height of the standing line at the foot: its 6px red rule + its type */
+  :root { --mobile-line-h: calc(6px + 3.8vw * 1.05); }
+
+  /* 1 · OPENING PAGE — the blue column becomes a band along the foot of the
+     screen, just above the standing line. It is the same drawing turned on
+     its side (84×400 → a band 21vw tall across the full width), so its parts
+     now run horizontally, reading from right to left: the head block at the
+     right end, the foot — with its small drawing, kept upright — at the left. */
+  .hero-side-panel[class] {
+    top: auto !important;
+    left: 0;
+    right: 0;
+    width: 100% !important;
+    height: 21vw;
+    bottom: var(--mobile-line-h, 25px);
+  }
+  .hero-side-panel > svg {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 21vw;
+    height: 100vw;
+    transform: translate(-50%, -50%) rotate(90deg);
+  }
+  .hero-side-panel .featured-artwork {
+    left: 2%;
+    right: auto;
+    bottom: auto;
+    top: 50%;
+    width: 15vw;
+    transform: translateY(-50%);
+  }
+  /* the animation stops above the band, so no form travels under it */
+  body:not(.stage-works) .hero-animation-centerpiece {
+    top: 0 !important;
+    bottom: calc(21vw + var(--mobile-line-h, 25px)) !important;
+    height: auto !important;
+  }
+
+  /* 2 · WORKS — the images lead. The sideways row becomes a two-column grid
+     you scroll down, so about eight works show at once instead of four, and
+     each sits in a square box instead of a 16:9 one: an upright poster (most
+     of the work) is ~60% larger. Works are still shown whole, never cropped.
+     The numbers sit closer to their work; the cords still string across
+     each row from number to number. */
+  .works-rail[class] {
+    overflow: visible;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  .projects-grid.works-rail-track[class] {
+    grid-auto-flow: row;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: none;
+    grid-auto-columns: auto;
+    width: 100%;
+    column-gap: 0.75rem;
+    row-gap: 0.9rem;
+  }
+  .project-item.works-card[class] { width: auto; }
+  .media-container.works-thumb[class] { aspect-ratio: 1 / 1; }
+  .works-card .works-num[class] { margin-bottom: 0.55rem; }
+
+  /* the list of titles steps back: smaller type, tighter rows, two columns */
+  .works-index[class] {
+    grid-template-columns: 1fr 1fr;
+    gap: 0 0.9rem;
+    padding-top: 1rem;
+    padding-bottom: 3.5rem;
+  }
+  .works-index-item[class] {
+    min-height: 34px;
+    font-size: 0.68rem;
+    gap: 0.35em;
+  }
+}
+
+
+/* ---- the showreel's sound icon -------------------------------------------
+   A frame the exact size of the video, so the icon sits on the video's own
+   bottom-right corner at any window size. The icon is a small line speaker:
+   waves when the reel is audible, a cross where the waves were when muted.
+   Hidden until the pointer is over the reel, then it fades in; it fades out
+   again when the pointer leaves. On touch screens a tap shows it for a
+   moment (app.js adds .show-sound, then takes it off). No text. */
+.reel-frame {
+  position: relative;
+  display: flex;
+  min-width: 0;
+}
+.reel-sound {
+  position: absolute;
+  right: 0.55rem;
+  bottom: 0.55rem;
+  z-index: 3;
+  width: 30px;
+  height: 30px;
+  padding: 7px;
+  margin: 0;
+  border: 0;
+  background: none;
+  color: #ffffff;
+  opacity: 0;
+  cursor: pointer;
+  transition: opacity 0.35s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+@media (hover: hover) {
+  .reel-frame:hover .reel-sound { opacity: 0.55; }
+  .reel-frame .reel-sound:hover { opacity: 0.95; }
+}
+.reel-frame.show-sound .reel-sound { opacity: 0.6; }
+.reel-sound:focus-visible { opacity: 0.95; }
+.reel-sound:focus-visible { outline: 1px solid rgba(255, 255, 255, 0.5); outline-offset: 0; }
+.reel-sound svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.reel-sound .slash { display: none; }
+.reel-sound.is-muted .waves { display: none; }
+.reel-sound.is-muted .slash { display: inline; }
+@media (max-width: 768px) {
+  /* a full 44px touch target on phones; the drawing stays the same size */
+  .reel-sound { width: 44px; height: 44px; padding: 14px; right: 0.2rem; bottom: 0.2rem; }
+}

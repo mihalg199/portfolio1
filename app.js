@@ -357,7 +357,7 @@ document.addEventListener('DOMContentLoaded', () => {
       client: "Mihal Gurevich Studio",
       role: "Motion Lead",
       toolkit: "After Effects, Blender",
-      asset: "esset/motion_3d_render.jpg",
+      asset: "esset/adom.jpg",
       videoAsset: "esset/trailer1.mp4",
       isVideo: true,
       aspectRatio: "16/9",

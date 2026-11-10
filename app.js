@@ -1284,17 +1284,31 @@ document.addEventListener('DOMContentLoaded', () => {
       const box = img.getBoundingClientRect();
       const nw = img.naturalWidth, nh = img.naturalHeight;
       if (!nw || !nh || !box.width) return;
-      const scale = Math.min(box.width / nw, box.height / nh);
+      // The clip keeps ITS OWN proportions. It used to be stretched to the
+      // still's, so any work whose still and film differ in shape (a square
+      // cover over an A4 film, a 1.90 still over a 16:9 film) came out
+      // squashed on hover. Until the film's size is known the still's shape
+      // is the best guess; loadedmetadata corrects it.
+      const vw = clip.videoWidth, vh = clip.videoHeight;
+      const haveFilm = vw > 0 && vh > 0;
+      const cw = haveFilm ? vw : nw, ch = haveFilm ? vh : nh;
+      card.classList.toggle('clip-differs', haveFilm && Math.abs(nw / nh - vw / vh) > 0.02);
+      const scale = Math.min(box.width / cw, box.height / ch);
       // AS IMPORTANT. The stylesheet sizes every media element in a card to
       // 100% with !important; a plain inline width loses to that, the clip
       // fell back to a video element's default 300x150, and hovering jumped
       // the image up by a fifth — the "zoom" on hover.
-      clip.style.setProperty('width', (nw * scale) + 'px', 'important');
-      clip.style.setProperty('height', (nh * scale) + 'px', 'important');
+      clip.style.setProperty('width', (cw * scale) + 'px', 'important');
+      clip.style.setProperty('height', (ch * scale) + 'px', 'important');
     };
 
     if (img.complete) place();
     else img.addEventListener('load', place, { once: true });
+    clip.addEventListener('loadedmetadata', place);
+    // When the film is a different shape from its still, the still would show
+    // around it: hide the still while the film is actually playing.
+    clip.addEventListener('playing', () => card.classList.add('clip-live'));
+    card.addEventListener('mouseleave', () => card.classList.remove('clip-live'));
     card._placeClip = place;
   }
 
@@ -4124,6 +4138,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // The arrow beside PORTFOLIO says "scroll"; clicking it does the same thing.
+  const scrollCue = document.querySelector('.scroll-cue');
+  if (scrollCue) {
+    const goOn = (e) => { e.preventDefault(); e.stopPropagation(); setStage(stage + 1); };
+    scrollCue.addEventListener('click', goOn);
+    scrollCue.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') goOn(e); });
+  }
+
   // While a stage is still collapsed the document may not be tall enough to
   // scroll at all, so intent is taken from the wheel/touch as well as scrollY.
   // ONE STAGE PER GESTURE.
@@ -4511,9 +4533,9 @@ document.addEventListener('DOMContentLoaded', () => {
       client: '',
       role: '',
       toolkit: '',
-      asset: isVid ? '' : firstPath,
-      videoAsset: isVid ? firstPath : '',
-      isVideo: isVid,
+      asset: firstIsVid ? '' : firstPath,
+      videoAsset: firstIsVid ? firstPath : '',
+      isVideo: firstIsVid,
       aspectRatio: detectedAspect,
       gallery: uploadedPaths,
       description: `Project work "${cleanTitle}" uploaded to portfolio.`

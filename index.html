@@ -8,7 +8,7 @@
   
   <!-- Typography is Helvetica, which is on the system: no webfont to fetch,
        and no flash of a fallback face before it swaps in. -->
-  <link rel="stylesheet" href="style.css?v=20261006_d">
+  <link rel="stylesheet" href="style.css?v=20261110_d">
 </head>
 <body class="dark-theme">
 
@@ -710,7 +710,7 @@
         <span class="edition-dot" style="left:83.4%;--dy:5.5px"></span>
         <span class="edition-dot edition-dot-one" style="left:90.2%;--dy:0px"></span>
         </div>
-        <span class="edition-big hl-yellow">PORTFOLIO</span>
+        <span class="edition-big hl-yellow">PORTFOLIO<span class="scroll-cue" role="button" tabindex="0" aria-label="Scroll down"><svg viewBox="0 0 60 72" aria-hidden="true"><path d="M30 0V63M8 41L30 63L52 41"/></svg></span></span>
         <span class="edition-sep" aria-hidden="true"><i style="--k:-2;--i:0"></i><i style="--k:-1;--i:1"></i><i style="--k:0;--i:2" class="sep-core"></i><i style="--k:1;--i:3"></i><i style="--k:2;--i:4"></i></span>
         <span class="edition-big edition-thin hl-yellow">online edition</span>
         <span class="edition-sep" aria-hidden="true"><i style="--k:-2;--i:0"></i><i style="--k:-1;--i:1"></i><i style="--k:0;--i:2" class="sep-core"></i><i style="--k:1;--i:3"></i><i style="--k:2;--i:4"></i></span>
@@ -761,6 +761,9 @@
   <section class="portfolio-grid-section poster-portfolio-section" id="portfolio-grid">
     <div class="section-header poster-section-header">
       <div class="catalog-controls">
+        <!-- Edit mode only (?edit on her own computer): hidden from visitors
+             by html:not(.edit-mode) #add-project-btn in style.css. -->
+        <button class="poster-add-btn" id="add-project-btn">➕ ADD NEW WORK</button>
         <span class="grid-count poster-grid-count" id="grid-count">Showing Projects</span>
       </div>
     </div>
@@ -1136,6 +1139,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=20261006_d"></script>
+  <script src="app.js?v=20261110_d"></script>
 </body>
 </html>

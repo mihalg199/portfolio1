@@ -3754,11 +3754,13 @@ body.gesture-live .poster-portfolio-section {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  object-fit: fill !important;
+  object-fit: contain !important;   /* never stretched: the box is the film's own shape */
   opacity: 0;
   transition: opacity 0.18s ease;
 }
 .works-card:hover .media-container.works-thumb .hover-video-loop { opacity: 1; }
+/* a film shaped differently from its still replaces it while it plays */
+.works-card.clip-differs.clip-live .media-container.works-thumb .thumb-img { opacity: 0 !important; }
 
 
 /* ------------------------------------------------------------------------
@@ -5612,3 +5614,92 @@ html, body { overscroll-behavior-x: none; }
   /* a full 44px touch target on phones; the drawing stays the same size */
   .reel-sound { width: 44px; height: 44px; padding: 14px; right: 0.2rem; bottom: 0.2rem; }
 }
+
+
+/* ---- the work editor (edit mode only) --------------------------------------
+   The form behind ADD NEW WORK and a work's edit button never had a layout of
+   its own: labels sat beside squeezed fields and the category read blank.
+   Two columns, each label above its field, dark fields in the site's ink. */
+#card-editor-modal .modal-card {
+  background: #0a0a0a;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+#card-editor-modal .editor-fields-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.9rem 1rem;
+}
+#card-editor-modal .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+  margin: 0;
+}
+#card-editor-modal .span-2 { grid-column: 1 / -1; }
+#card-editor-modal .form-group > label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+}
+#card-editor-modal .form-group input[type="text"],
+#card-editor-modal .form-group select,
+#card-editor-modal .form-group textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.6rem 0.75rem;
+  background: #161718;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+#card-editor-modal .form-group input[type="text"]:focus,
+#card-editor-modal .form-group select:focus,
+#card-editor-modal .form-group textarea:focus {
+  outline: none;
+  border-color: #D4FF00;
+}
+#card-editor-modal .form-group input::placeholder,
+#card-editor-modal .form-group textarea::placeholder { color: rgba(255, 255, 255, 0.35); }
+#card-editor-modal .form-group select option { background: #161718; color: #ffffff; }
+#card-editor-modal .form-group textarea { resize: vertical; min-height: 6rem; }
+/* RTL text (Hebrew descriptions) runs the right way in the fields */
+#card-editor-modal input[type="text"],
+#card-editor-modal textarea { unicode-bidi: plaintext; text-align: start; }
+@media (max-width: 768px) {
+  #card-editor-modal .editor-fields-grid { grid-template-columns: 1fr; }
+}
+
+
+/* ---- the scroll arrow beside PORTFOLIO ------------------------------------
+   Drawn, not typed: Helvetica has no arrow of its own, so a typed one came
+   from a thinner fallback face. This one is cut to the word: as tall as its
+   capitals (0.72em), a stroke as heavy as Helvetica Bold's stems (0.12em),
+   in the word's own colour. Clicking it moves on, like a scroll. */
+.scroll-cue {
+  display: inline-block;
+  width: 0.6em;
+  height: 0.72em;
+  margin-left: 0.2em;
+  vertical-align: baseline;
+  cursor: pointer;
+  color: inherit;
+}
+.scroll-cue svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 12;
+  stroke-linecap: butt;
+  stroke-linejoin: miter;
+}
+.scroll-cue:focus-visible { outline: 1px solid currentColor; outline-offset: 0.12em; }

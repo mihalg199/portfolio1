@@ -70,39 +70,45 @@
     "format": "ANIMATION"
   },
   {
-    "id": "work-1787240342924",
-    "title": "Elihu",
-    "subtitle": "Tour identity and visual language developed for Eliyahu’s live shows. The project included designing a modular series of event posters and typographic systems tailored to capture the raw energy and mood of the tour.",
+    "id": "work-1794339005700",
+    "title": "Hollow earth",
+    "subtitle": "Poster experiment",
     "category": "Motion & Screen Graphics",
     "catTag": "motion",
-    "year": "2025",
-    "client": "Mihal Gurevich Studio",
-    "role": "Motion Lead",
-    "toolkit": "After Effects, Blender",
-    "asset": "",
-    "videoAsset": "esset/m_dbf86b9bd4.mp4",
-    "isVideo": true,
-    "aspectRatio": "16/9",
-    "description": "Tour identity and visual language developed for Eliyahu’s live shows. The project included designing a modular series of event posters and typographic systems tailored to capture the raw energy and mood of the tour.",
-    "format": "TYPOGRAPHY"
+    "year": "",
+    "client": "",
+    "role": "",
+    "toolkit": "",
+    "asset": "esset/m_f2af43abd3.jpg",
+    "videoAsset": "",
+    "gallery": [
+      "esset/m_f2af43abd3.jpg",
+      "esset/m_47dbd8c505.jpg"
+    ],
+    "isVideo": false,
+    "aspectRatio": "3/4",
+    "description": "Poster experiment",
+    "format": "POSTER"
   },
   {
-    "id": "work-3",
-    "title": "Party poster",
-    "subtitle": "",
-    "category": "",
+    "id": "work-1790537287856",
+    "title": "Frame Rave — Jerusalem Animation Festival",
+    "subtitle": "Visual identity, animated motion poster, print posters, and social media assets (lineups, reels, and stories) for the annual festival party.",
+    "category": "Motion & Screen Graphics",
     "catTag": "motion",
-    "year": "2025",
+    "year": "",
     "client": "",
-    "role": "Motion Lead",
-    "toolkit": "After Effects, Blender",
+    "role": "",
+    "toolkit": "",
     "asset": "",
-    "videoAsset": "esset/m_0a4b510b21.mp4",
+    "videoAsset": "esset/reel_reel.mp4",
     "isVideo": true,
     "aspectRatio": "9/16",
-    "description": "",
-    "format": "ANIMATION",
-    "plateScale": 1
+    "gallery": [
+      "esset/reel_reel.mp4"
+    ],
+    "description": "Visual identity, animated motion poster, print posters, and social media assets (lineups, reels, and stories) for the annual festival party.",
+    "format": "POSTER"
   },
   {
     "id": "work-1787232882040",
@@ -122,25 +128,22 @@
     "format": "ANIMATION"
   },
   {
-    "id": "work-1789299095309",
-    "title": "Once upon a time",
-    "subtitle": "A poster series exploring the deceptive simplicity and underlying complexity of universally recognizable iconography. Rooted in the visual research of my graduation film, A Shadow of a Doubt, the project deconstructs everyday symbols into charged visual metaphors.",
+    "id": "work-3",
+    "title": "Party poster",
+    "subtitle": "",
     "category": "",
     "catTag": "motion",
-    "year": "2026",
+    "year": "2025",
     "client": "",
-    "role": "Graphic Designer",
-    "toolkit": "InDesign, Illustrator",
-    "asset": "esset/m_94760be8d0.jpg",
-    "videoAsset": "",
-    "gallery": [
-      "esset/purple_sofi.png",
-      "esset/m_94760be8d0.jpg"
-    ],
-    "isVideo": false,
+    "role": "Motion Lead",
+    "toolkit": "After Effects, Blender",
+    "asset": "",
+    "videoAsset": "esset/m_0a4b510b21.mp4",
+    "isVideo": true,
     "aspectRatio": "9/16",
-    "description": "A poster series exploring the deceptive simplicity and underlying complexity of universally recognizable iconography. Rooted in the visual research of my graduation film, A Shadow of a Doubt, the project deconstructs everyday symbols into charged visual metaphors.",
-    "format": "POSTER"
+    "description": "",
+    "format": "ANIMATION",
+    "plateScale": 1
   },
   {
     "id": "work-1789298254739",
@@ -264,23 +267,41 @@
     "format": "POSTER"
   },
   {
-    "id": "work-1789302093075",
-    "title": "Party poster",
-    "subtitle": "",
+    "id": "work-1787240342924",
+    "title": "Elihu",
+    "subtitle": "Tour identity and visual language developed for Eliyahu’s live shows. The project included designing a modular series of event posters and typographic systems tailored to capture the raw energy and mood of the tour.",
+    "category": "Motion & Screen Graphics",
+    "catTag": "motion",
+    "year": "2025",
+    "client": "Mihal Gurevich Studio",
+    "role": "Motion Lead",
+    "toolkit": "After Effects, Blender",
+    "asset": "",
+    "videoAsset": "esset/m_dbf86b9bd4.mp4",
+    "isVideo": true,
+    "aspectRatio": "16/9",
+    "description": "Tour identity and visual language developed for Eliyahu’s live shows. The project included designing a modular series of event posters and typographic systems tailored to capture the raw energy and mood of the tour.",
+    "format": "TYPOGRAPHY"
+  },
+  {
+    "id": "work-1789299095309",
+    "title": "Once upon a time",
+    "subtitle": "A poster series exploring the deceptive simplicity and underlying complexity of universally recognizable iconography. Rooted in the visual research of my graduation film, A Shadow of a Doubt, the project deconstructs everyday symbols into charged visual metaphors.",
     "category": "",
     "catTag": "motion",
-    "year": "",
+    "year": "2026",
     "client": "",
-    "role": "",
-    "toolkit": "",
-    "asset": "esset/m_302e2a9033.png",
+    "role": "Graphic Designer",
+    "toolkit": "InDesign, Illustrator",
+    "asset": "esset/m_94760be8d0.jpg",
     "videoAsset": "",
     "gallery": [
-      "esset/m_302e2a9033.png"
+      "esset/purple_sofi.png",
+      "esset/m_94760be8d0.jpg"
     ],
     "isVideo": false,
     "aspectRatio": "9/16",
-    "description": "",
+    "description": "A poster series exploring the deceptive simplicity and underlying complexity of universally recognizable iconography. Rooted in the visual research of my graduation film, A Shadow of a Doubt, the project deconstructs everyday symbols into charged visual metaphors.",
     "format": "POSTER"
   },
   {
@@ -303,28 +324,6 @@
     "aspectRatio": "1/1",
     "description": "A collection of personal explorations and material experiments. This series blends diverse mediums, including intuitive animation, printmaking, and illustration.",
     "format": ""
-  },
-  {
-    "id": "work-1789303597625",
-    "title": "Inspiration Coming Back to Be Repaired",
-    "subtitle": "The imagery for the book was created through image-making—visual interpretations of quotes from Pesach Slabosky’s book, Inspiration Coming Back to Be Repaired",
-    "category": "",
-    "catTag": "motion",
-    "year": "",
-    "client": "",
-    "role": "",
-    "toolkit": "",
-    "asset": "",
-    "videoAsset": "esset/m_c1d191cdb4.mp4",
-    "isVideo": true,
-    "aspectRatio": "16/9",
-    "gallery": [
-      "esset/m_c1d191cdb4.mp4"
-    ],
-    "description": "The imagery for the book was created through image-making—visual interpretations of quotes from Pesach Slabosky’s book, Inspiration Coming Back to Be Repaired",
-    "format": "BOOK",
-    "playbackRate": 1.75,
-    "mediaZoom": 1.25
   },
   {
     "id": "work-1790513172131",
@@ -422,28 +421,24 @@
     "format": "TYPOGRAPHY"
   },
   {
-    "id": "work-1790516953880",
-    "title": "Forte",
-    "subtitle": "Visual identity and social media branding for Forte, a local bar. The project encompassed feed aesthetics, story templates, custom typography, and motion assets, establishing a distinct nightlife atmosphere and cohesive digital presence.",
-    "category": "Motion & Screen Graphics",
+    "id": "work-1789302093075",
+    "title": "Party poster",
+    "subtitle": "",
+    "category": "",
     "catTag": "motion",
     "year": "",
     "client": "",
     "role": "",
     "toolkit": "",
-    "asset": "esset/m_fb01a4a1cf.png",
+    "asset": "esset/m_302e2a9033.png",
     "videoAsset": "",
     "gallery": [
-      "esset/m_fb01a4a1cf.png",
-      "esset/m_c3a7f2bbc5.png",
-      "esset/m_32039e4f23.png",
-      "esset/m_202d528606.jpg",
-      "esset/19.2.png"
+      "esset/m_302e2a9033.png"
     ],
     "isVideo": false,
-    "aspectRatio": "3/4",
-    "description": "Visual identity and social media branding for Forte, a local bar. The project encompassed feed aesthetics, story templates, custom typography, and motion assets, establishing a distinct nightlife atmosphere and cohesive digital presence.",
-    "format": "VISUAL IDENTITY"
+    "aspectRatio": "9/16",
+    "description": "",
+    "format": "POSTER"
   },
   {
     "id": "work-1790517184980",
@@ -486,26 +481,24 @@
     "format": "ANIMATION"
   },
   {
-    "id": "work-1790535174038",
-    "title": "Poetry Book / Zine: Selected Spreads (Client Work)",
-    "subtitle": "",
-    "category": "",
+    "id": "work-1794339272648",
+    "title": "Frame Rave — Jerusalem Animation Festival",
+    "subtitle": "Visual identity, animated motion poster, print posters, and social media assets (lineups, reels, and stories) for the annual festival party.",
+    "category": "Motion & Screen Graphics",
     "catTag": "motion",
     "year": "",
     "client": "",
     "role": "",
     "toolkit": "",
-    "asset": "esset/32-33_32-33.png",
+    "asset": "esset/1.jpg",
     "videoAsset": "",
+    "gallery": [
+      "esset/1.jpg",
+      "esset/m_1f08390c7a.jpg"
+    ],
     "isVideo": false,
     "aspectRatio": "3/4",
-    "gallery": [
-      "esset/32-33_32-33.png",
-      "esset/30-31_30-31.png",
-      "esset/52-53_52-53.png"
-    ],
-    "description": "",
-    "format": "BOOK"
+    "description": "Visual identity, animated motion poster, print posters, and social media assets (lineups, reels, and stories) for the annual festival party."
   },
   {
     "id": "work-1790535153893",
@@ -553,8 +546,97 @@
     "format": "POSTER"
   },
   {
-    "id": "work-1790537287856",
-    "title": "poster 01 static 2",
+    "id": "work-1789303597625",
+    "title": "Inspiration Coming Back to Be Repaired",
+    "subtitle": "The imagery for the book was created through image-making—visual interpretations of quotes from Pesach Slabosky’s book, Inspiration Coming Back to Be Repaired",
+    "category": "",
+    "catTag": "motion",
+    "year": "",
+    "client": "",
+    "role": "",
+    "toolkit": "",
+    "asset": "",
+    "videoAsset": "esset/m_c1d191cdb4.mp4",
+    "isVideo": true,
+    "aspectRatio": "16/9",
+    "gallery": [
+      "esset/m_c1d191cdb4.mp4"
+    ],
+    "description": "The imagery for the book was created through image-making—visual interpretations of quotes from Pesach Slabosky’s book, Inspiration Coming Back to Be Repaired",
+    "format": "BOOK",
+    "playbackRate": 1.75,
+    "mediaZoom": 1.25
+  },
+  {
+    "id": "work-1790516953880",
+    "title": "Forte",
+    "subtitle": "Visual identity and social media branding for Forte, a local bar. The project encompassed feed aesthetics, story templates, custom typography, and motion assets, establishing a distinct nightlife atmosphere and cohesive digital presence.",
+    "category": "Motion & Screen Graphics",
+    "catTag": "motion",
+    "year": "",
+    "client": "",
+    "role": "",
+    "toolkit": "",
+    "asset": "esset/m_fb01a4a1cf.png",
+    "videoAsset": "",
+    "gallery": [
+      "esset/m_fb01a4a1cf.png",
+      "esset/m_c3a7f2bbc5.png",
+      "esset/m_32039e4f23.png",
+      "esset/m_202d528606.jpg",
+      "esset/19.2.png"
+    ],
+    "isVideo": false,
+    "aspectRatio": "3/4",
+    "description": "Visual identity and social media branding for Forte, a local bar. The project encompassed feed aesthetics, story templates, custom typography, and motion assets, establishing a distinct nightlife atmosphere and cohesive digital presence.",
+    "format": "VISUAL IDENTITY"
+  },
+  {
+    "id": "work-1794339913124",
+    "title": "poster experiment",
+    "subtitle": "",
+    "category": "Motion & Screen Graphics",
+    "catTag": "motion",
+    "year": "",
+    "client": "",
+    "role": "",
+    "toolkit": "",
+    "asset": "",
+    "videoAsset": "esset/m_549ddbadf1.mp4",
+    "isVideo": true,
+    "aspectRatio": "9/16",
+    "gallery": [
+      "esset/m_549ddbadf1.mp4",
+      "esset/m_feeec40c04.png"
+    ],
+    "description": "",
+    "format": "ANIMATION"
+  },
+  {
+    "id": "work-1790535174038",
+    "title": "Poetry Book / Zine: Selected Spreads (Client Work)",
+    "subtitle": "",
+    "category": "",
+    "catTag": "motion",
+    "year": "",
+    "client": "",
+    "role": "",
+    "toolkit": "",
+    "asset": "esset/32-33_32-33.png",
+    "videoAsset": "",
+    "isVideo": false,
+    "aspectRatio": "3/4",
+    "gallery": [
+      "esset/32-33_32-33.png",
+      "esset/30-31_30-31.png",
+      "esset/52-53_52-53.png"
+    ],
+    "description": "",
+    "format": "BOOK"
+  },
+  {
+    "id": "work-1794339514541",
+    "title": "story lineup 2",
     "subtitle": "Uploaded Project",
     "category": "Motion & Screen Graphics",
     "catTag": "motion",
@@ -567,10 +649,10 @@
     "isVideo": false,
     "aspectRatio": "9/16",
     "gallery": [],
-    "description": "Project work \"poster 01 static 2\" uploaded to portfolio."
+    "description": "Project work \"story lineup 2\" uploaded to portfolio."
   },
   {
-    "id": "work-1790537278023",
+    "id": "work-1790538550667",
     "title": "",
     "subtitle": "",
     "category": "Motion & Screen Graphics",
@@ -587,7 +669,24 @@
     "description": ""
   },
   {
-    "id": "work-1790538550667",
+    "id": "work-1794339878652",
+    "title": "אנימציה",
+    "subtitle": "Uploaded Project",
+    "category": "Motion & Screen Graphics",
+    "catTag": "motion",
+    "year": "",
+    "client": "",
+    "role": "",
+    "toolkit": "",
+    "asset": "",
+    "videoAsset": "",
+    "isVideo": false,
+    "aspectRatio": "9/16",
+    "gallery": [],
+    "description": "Project work \"אנימציה\" uploaded to portfolio."
+  },
+  {
+    "id": "work-1790537278023",
     "title": "",
     "subtitle": "",
     "category": "Motion & Screen Graphics",

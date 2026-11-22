@@ -5703,3 +5703,559 @@ html, body { overscroll-behavior-x: none; }
   stroke-linejoin: miter;
 }
 .scroll-cue:focus-visible { outline: 1px solid currentColor; outline-offset: 0.12em; }
+
+
+/* ==========================================================================
+   PHONES, ROUND 3
+   ========================================================================== */
+
+/* The close button for a work. Desktop closes by clicking the black around
+   the work; a phone has none, so the arrows get a ✕ beside them. */
+.modal-close-phone { display: none; }
+@media (max-width: 768px) {
+  .modal-close-phone { display: flex; margin-right: 0.5rem; }
+}
+
+/* THE VISIBLE SCREEN, NOT THE BIG ONE.
+   100vh on an iPhone is the height with Safari's bars tucked away, so with
+   them showing, the bottom of every screen — the PORTFOLIO · ONLINE EDITION
+   line, the foot of the reel — slid behind the toolbar. 100dvh is the height
+   actually visible. Phones only; the line above each is the fallback for
+   browsers that do not know dvh. */
+@media (max-width: 768px) {
+  html, body { min-height: 100vh; min-height: 100dvh; }
+  .poster-masthead { min-height: 100vh; min-height: 100dvh; }
+  .hero-stage.poster-section-plate { height: 100vh; height: 100dvh; }
+  .modal-overlay { height: 100vh; height: 100dvh; }
+}
+
+
+/* ==========================================================================
+   PHONES, ROUND 4 (≤ 768px only — desktop is not touched)
+   ========================================================================== */
+@media (max-width: 768px) {
+
+  /* 1 · OPENING PAGE. The grey band rises to take a larger share of the
+     screen, and the standing line grows: PORTFOLIO on its own line, then
+     ONLINE EDITION · 2026 under it. */
+  :root {
+    --band-h: 30vw;
+    --mobile-line-h: calc(6px + 21.4vw);
+  }
+  .hero-side-panel[class] { height: var(--band-h); }
+  .hero-side-panel > svg { width: var(--band-h); }
+  body:not(.stage-works) .hero-animation-centerpiece {
+    bottom: calc(var(--band-h) + var(--mobile-line-h, 25px)) !important;
+  }
+  .hero-edition-line .edition-big[class] { font-size: 6vw !important; line-height: 1.15; }
+  .hero-edition-line .edition-sep i { width: 6px; height: 6px; }
+  /* the first separator becomes the line break after PORTFOLIO */
+  .hero-edition-line > .edition-sep:nth-child(3) {
+    flex: 0 0 100%;
+    height: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  /* 2 · WORKS. Two thirds of the screen are the works, running sideways in
+     two rows as on desktop; the list of titles takes the last third and
+     scrolls on its own. The panel itself no longer scrolls. */
+  :root {
+    --works-top: 3rem;
+    --works-rail-h: calc(66.6dvh - var(--works-top));
+    --works-box: min(calc((var(--works-rail-h) - 5.6rem) / 2), 56vw);
+  }
+  #portfolio-grid.poster-portfolio-section {
+    overflow: hidden !important;
+    justify-content: flex-start !important;
+    padding: var(--works-top) 0 0 !important;
+  }
+  .works-rail[class] {
+    flex: 0 0 var(--works-rail-h);
+    height: var(--works-rail-h);
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0 1rem 0.9rem;
+    scroll-padding-inline: 1rem;
+  }
+  .projects-grid.works-rail-track[class] {
+    grid-auto-flow: column;
+    grid-template-rows: repeat(2, auto);
+    grid-template-columns: none;
+    grid-auto-columns: var(--works-box);
+    width: max-content;
+    column-gap: 0.9rem;
+    row-gap: 0.9rem;
+  }
+  .project-item.works-card[class] { width: var(--works-box); }
+
+  /* the list: one run of titles, 01 → last, in two columns, scrolling */
+  #works-index[class] {
+    flex: 1 1 0;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-auto-rows: min-content;
+    align-content: start;
+    column-gap: 0.9rem;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding: 0.6rem 1rem 1rem;
+  }
+  #works-index .works-index-col { display: contents; }
+  #works-index .works-index-item { min-width: 0; }
+  #works-index .works-index-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+@media (max-width: 768px) {
+  .hero-edition-line[class] { flex-wrap: wrap !important; row-gap: 0; justify-content: center; }
+}
+
+
+/* ==========================================================================
+   PHONES, ROUND 5 (≤ 768px only)
+   ========================================================================== */
+@media (max-width: 768px) {
+  /* even air between the works, the same across and down */
+  :root { --works-gap: 1.6rem; --works-box: min(calc((var(--works-rail-h) - 6.3rem) / 2), 56vw); }
+  .projects-grid.works-rail-track[class] { column-gap: var(--works-gap); row-gap: var(--works-gap); }
+  .works-rail[class] { padding-left: 1.2rem; padding-right: 1.2rem; scroll-padding-inline: 1.2rem; }
+  /* a picture enlarged inside its own box stays inside it */
+  .media-container.works-thumb[class] { overflow: hidden; }
+  .works-card .thumb-img { transform-origin: 50% 50%; }
+
+  /* the moving line at the foot: 2cm more air, set in the middle of it */
+  .works-marquee[class] {
+    flex: none;
+    margin-top: 0;
+    padding: 1cm 0;
+    box-sizing: content-box;
+  }
+
+  /* the titles of the works in view stand out; the rest step back */
+  #works-index.follows-rail .works-index-item { opacity: 0.45; transition: opacity 0.2s ease; }
+  #works-index.follows-rail .works-index-item.in-view { opacity: 1; }
+}
+
+
+/* ==========================================================================
+   PHONES, ROUND 6 (≤ 768px only)
+   ========================================================================== */
+@media (max-width: 768px) {
+  /* ONLINE EDITION stays whole: a little smaller, held in from both edges */
+  .hero-edition-line[class] { padding-left: 4vw !important; padding-right: 4vw !important; box-sizing: border-box !important; }
+  .hero-edition-line .edition-big[class] { font-size: 5vw !important; white-space: nowrap; }
+  .hero-edition-line .edition-sep { padding: 0 0.3em; }
+
+  /* name and CV, about 3cm lower */
+  .hero-name-below[class] { top: calc(30vh + 3cm) !important; }
+
+  /* the band shows the whole drawing, as on desktop: the 84×400 artwork,
+     turned on its side, is 21vw tall and sits in the middle of the band */
+  .hero-side-panel > svg { width: 21vw; height: 100vw; }
+  .hero-side-panel[class] { background-color: #b6c7ea !important; }
+  body.light-poster-canvas .hero-side-panel[class] { background-color: #0C0D0E !important; }
+
+  /* …and it moves more: the dotted track runs faster and the blocks sway */
+  .panel-track { animation-duration: 7s; }
+  .hero-side-panel .panel-block { animation: panel-sway 3.2s ease-in-out infinite alternate; }
+  .hero-side-panel .panel-block:nth-of-type(2n) { animation-duration: 4.1s; animation-direction: alternate-reverse; }
+  .hero-side-panel .panel-frame { animation: panel-sway 2.6s ease-in-out infinite alternate-reverse; }
+}
+@keyframes panel-sway {
+  from { transform: translateY(-4px); }
+  to   { transform: translateY(4px); }
+}
+@media (max-width: 768px) and (prefers-reduced-motion: reduce) {
+  .hero-side-panel .panel-block, .hero-side-panel .panel-frame { animation: none; }
+}
+
+/* WORKS, ROUND 6: more black above (~2cm), smaller works at an even gap, the
+   list a little lower, and the moving line with half the air it had */
+@media (max-width: 768px) {
+  :root {
+    --works-top: calc(3rem + 2cm);
+    --works-rail-h: calc(68dvh - var(--works-top));
+    --works-box: min(calc((var(--works-rail-h) - 6.3rem) / 2), 56vw);
+  }
+  .works-marquee[class] { padding: 0.5cm 0; }
+}
+
+/* WORK PAGE, ROUND 6: when a work's page scrolls, its text ends with room
+   below it — clear of the buttons and the bottom edge of the phone */
+@media (max-width: 768px) {
+  #project-modal .modal-card.is-scrolling[class] { padding-bottom: 7rem !important; }
+}
+@media (max-width: 768px) {
+  #project-modal .modal-card.is-low[class] { padding-bottom: 5.7rem !important; }
+}
+
+
+/* ==========================================================================
+   ROUND 7
+   ========================================================================== */
+/* the faint brown/pink wash and dots that drew a strip across the middle of
+   the opening page: gone, the black stays */
+.poster-hero-grid-board { background-image: none !important; }
+
+/* PORTFOLIO and SHOWREEL, with their arrows, are buttons */
+.scroll-cue-host[class] { cursor: pointer; pointer-events: auto !important; }
+.reel-edge-label.scroll-cue-host { pointer-events: auto; }
+.reel-edge-label .scroll-cue { margin-left: 0.3em; }
+
+@media (max-width: 768px) {
+  /* works, a touch lower: the works, their cords and the list */
+  :root {
+    --works-top: calc(3rem + 2.6cm);
+    --works-rail-h: calc(70dvh - var(--works-top));
+  }
+  /* a work's page: black above it, so the phone's own top never covers it */
+  #project-modal .modal-card[class] {
+    padding-top: max(3.6rem, calc(env(safe-area-inset-top) + 1.6rem)) !important;
+  }
+}
+
+/* a work is shown once it has settled, not while it is still being laid out */
+#project-modal .modal-card.plate-fitting #modal-media-wrapper,
+#project-modal .modal-card.plate-fitting #modal-caption-left { opacity: 0; }
+
+
+
+/* ==========================================================================
+   ROUND 8
+   ========================================================================== */
+/* THE CIRCLES: a steady wave. Each dot rises and swells a beat after the one
+   before it, so the run reads as a pulse travelling along the row — no
+   merging, no fading in and out. */
+.edition-sep i {
+  animation: sep-wave 1.5s ease-in-out infinite !important;
+  animation-delay: calc(var(--i) * 0.15s - 1.5s) !important;
+}
+@keyframes sep-wave {
+  0%, 100% { transform: translateY(0) scale(1); }
+  35%      { transform: translateY(-0.3em) scale(1.3); }
+  70%      { transform: translateY(0) scale(1); }
+}
+/* the second run of circles, to the right of 2026, is a phone detail */
+.edition-sep-end { display: none !important; }
+
+@media (max-width: 768px) {
+  .edition-sep-end { display: inline-flex !important; }
+  /* ONLINE EDITION ●●●●● 2026 ●●●●● — one group, in the middle of the phone */
+  .hero-edition-line { justify-content: center !important; }
+  .hero-edition-line .edition-thin[class],
+  .hero-edition-line .edition-year[class] {
+    flex: 0 0 auto !important;
+    text-align: center !important;
+    padding-left: 0.1em !important;
+    padding-right: 0.1em !important;
+  }
+  .hero-edition-line .edition-sep { padding: 0 0.28em; gap: 0.14em; }
+  .hero-edition-line .edition-sep i { width: 5px; height: 5px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .edition-sep i { animation: none !important; }
+}
+
+/* PHONES, long (upright) works: they take more of the screen — slimmer
+   margins, a smaller mark and tighter spacing in the caption */
+@media (max-width: 768px) {
+  #project-modal .modal-card.is-upright[class] {
+    padding-top: max(3.1rem, calc(env(safe-area-inset-top) + 1.2rem)) !important;
+  }
+  #project-modal .modal-card.is-upright .modal-caption-glyph { width: 18px; height: 18px; }
+  #project-modal .modal-card.is-upright #modal-caption-left { gap: 0.25rem; }
+}
+
+
+/* ==========================================================================
+   ROUND 9 (phones)
+   ========================================================================== */
+@media (max-width: 768px) {
+  /* works: each in a frame cut to its own shape, two rows side by side */
+  .projects-grid.works-rail-track.hug[class] {
+    display: block !important;
+    position: relative;
+    width: var(--hug-w) !important;
+    height: var(--hug-h);
+  }
+  .works-rail-track.hug .project-item.works-card[class] { position: absolute; margin: 0; }
+
+  /* a work's page is locked onto the work: a page that fits does not move at
+     all, and one that has to scroll stops at its last line */
+  #project-modal .modal-card[class] { overscroll-behavior: none; }
+  #project-modal .modal-card:not(.is-scrolling)[class] { overflow: hidden !important; }
+  #project-modal .modal-card.is-scrolling[class] { padding-bottom: 5.2rem !important; }
+}
+
+
+/* works on a phone: more air between them */
+@media (max-width: 768px) {
+  :root {
+    --works-gap: 2.6rem;
+    --works-box: min(calc((var(--works-rail-h) - 7.3rem) / 2), 56vw);
+  }
+}
+
+
+/* the top row of works stands a little higher: the rows are further apart,
+   the lower row and the list keep their place */
+@media (max-width: 768px) {
+  :root {
+    --row-extra: 0.8cm;
+    --works-top: calc(3rem + 2.6cm - var(--row-extra));
+    --works-rail-h: calc(70dvh - var(--works-top));
+    --works-box: min(calc((var(--works-rail-h) - var(--row-extra) - 7.3rem) / 2), 56vw);
+  }
+}
+
+/* ==========================================================================
+   ROUND 10
+   ========================================================================== */
+/* the + in the corner of the opening page is gone */
+.reg-crosshair { display: none !important; }
+
+/* a work's page on a phone: the ✕ sits at the top edge of the page, the
+   arrows stay at the foot */
+@media (max-width: 768px) {
+  #modal-close-phone.modal-close-phone[class] {
+    position: fixed;
+    top: max(0.6rem, calc(env(safe-area-inset-top) + 0.3rem));
+    right: 0.7rem;
+    margin: 0;
+    z-index: 1040;
+  }
+  #modal-close-phone .yellow-arrow-circle { transform: scale(0.82); transform-origin: top right; }
+}
+
+@media (max-width: 768px) {
+  #works-index[class] { padding-top: 0.85rem; }
+}
+
+
+/* DESKTOP: plain grain over the page, not the SVG noise */
+@media (min-width: 769px) {
+  .plain-grain { position: fixed; inset: 0; z-index: 9200; pointer-events: none; opacity: 0.55; }
+}
+
+
+
+/* the ✕ on a work's page: no zoom when the pointer passes over it, and clear
+   of the phone's edge */
+@media (max-width: 768px) {
+  #modal-close-phone.modal-close-phone[class] {
+    top: max(0.75cm, calc(env(safe-area-inset-top) + 0.5cm));
+    right: 1cm;
+  }
+  #modal-close-phone .yellow-arrow-circle,
+  #modal-close-phone:hover .yellow-arrow-circle,
+  #modal-close-phone:active .yellow-arrow-circle,
+  #modal-close-phone:focus .yellow-arrow-circle {
+    transform: scale(0.74) !important;
+    transition: none !important;
+  }
+  #project-modal .modal-card[class] { padding-top: max(3.9rem, calc(env(safe-area-inset-top) + 1.9rem)) !important; }
+  #project-modal .modal-card.is-upright[class] { padding-top: max(3.5rem, calc(env(safe-area-inset-top) + 1.5rem)) !important; }
+}
+
+/* ==========================================================================
+   WORKS PAGE ON A WIDE SCREEN: the list sits low, about 1cm above the moving
+   line; the two rows of works are centred in the room that is left above it,
+   so the air above them, between them and the list is even.
+   ========================================================================== */
+@media (min-width: 769px) {
+  #portfolio-grid.poster-portfolio-section {
+    justify-content: flex-start !important;
+    padding-top: 0 !important;
+  }
+  #portfolio-grid .works-rail[class] {
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    padding-bottom: 0;
+  }
+  #portfolio-grid .works-rail > .projects-grid { flex: none; }
+  #portfolio-grid #works-index[class] {
+    flex: none;
+    margin-bottom: 1cm;
+    padding-top: 0;
+  }
+  #portfolio-grid .works-marquee[class] { margin-top: 0; flex: none; }
+}
+
+/* DESKTOP: the standing line (PORTFOLIO · ONLINE EDITION · 2026) was too big */
+@media (min-width: 769px) {
+  .hero-edition-line .edition-big[class] { font-size: clamp(0.9rem, 2.3vw, 1.9rem) !important; }
+  .hero-edition-line .edition-sep { font-size: clamp(0.9rem, 2.3vw, 1.9rem); }
+}
+@media (min-width: 769px) {
+  /* the extra circles after 2026 are phone-only, so 2026 is no longer the
+     last child: give it the right-hand place that rule used to */
+  .hero-edition-line .edition-year[class] { text-align: right; padding-right: 1.6rem !important; }
+}
+@media (min-width: 769px) {
+  /* the side panel stops where the standing line begins, so 2026 shows */
+  :root { --band-top: calc(clamp(0.9rem, 2.3vw, 1.9rem) * 1.42 + 6px); }
+}
+
+/* WORKS PAGE, wide screens: more air between the two rows, the lower row
+   sitting lower, and the same measure between row one and row two as
+   between row two and the list */
+@media (min-width: 769px) {
+  :root { --works-air: calc(4rem * var(--desk-s, 1)); }
+  .project-item.works-card[class] { width: calc(15.5rem * var(--desk-s, 1)) !important; }
+  .projects-grid.works-rail-track[class] { grid-auto-columns: calc(15.5rem * var(--desk-s, 1)) !important; }
+  #portfolio-grid .works-rail[class] { align-items: flex-end; padding-bottom: var(--works-air); }
+  #portfolio-grid .works-rail > .projects-grid { row-gap: var(--works-air) !important; }
+}
+
+/* PHONES: the words at the foot (PORTFOLIO / ONLINE EDITION 2026) a little
+   higher, closer under the grey composition */
+@media (max-width: 768px) {
+  .hero-edition-line > .edition-big,
+  .hero-edition-line > .edition-sep { transform: none; }
+}
+
+/* PHONES: the words sit ABOVE the periwinkle band; the band goes to the very foot */
+@media (max-width: 768px) {
+  .hero-side-panel[class] { bottom: 0 !important; }
+  .hero-edition-line[class] { bottom: var(--band-h) !important; padding-bottom: 0.3cm !important; }
+}
+
+/* THE IMAGES THEMSELVES ARE CLEAN: no ink-grain mask, no pitted/rough print on
+   the figures; only the page's regular grain sits over them */
+.morph-arches-path,
+.morph-ribbon-path,
+.morph-core-ring,
+.morph-floating-ring,
+.morph-satellite-dot { mask: none !important; -webkit-mask: none !important; }
+.featured-drawing,
+.modal-caption-glyph,
+.modal-caption-glyph path { filter: none !important; }
+
+/* PHONES: the standing words are half as big (thin), and the main composition
+   comes down to take the black space that frees up */
+@media (max-width: 768px) {
+  :root { --mobile-line-h: 11vw; }
+  .hero-edition-line .edition-big[class] { font-size: 2.6vw !important; line-height: 1.2; }
+  .hero-edition-line .edition-sep i { width: 3px; height: 3px; }
+  .hero-edition-line[class] { padding-bottom: 0.25cm !important; }
+  body:not(.stage-works) .hero-animation-centerpiece {
+    bottom: calc(var(--band-h) + var(--mobile-line-h)) !important;
+  }
+}
+
+/* PHONES: the standing words a little bigger again, all on ONE line */
+@media (max-width: 768px) {
+  .hero-edition-line[class] { flex-wrap: nowrap !important; padding-left: 2vw !important; padding-right: 2vw !important; }
+  .hero-edition-line > .edition-sep:nth-child(3) {
+    flex: 0 0 auto; height: auto; padding: 0 0.28em; overflow: visible;
+  }
+  .hero-edition-line .edition-big[class] { font-size: 3.5vw !important; }
+  .hero-edition-line .edition-sep { padding: 0 0.2em; gap: 0.1em; }
+  :root { --mobile-line-h: 8vw; }
+}
+
+/* PHONES: the line of words centred in the black strip between the
+   composition and the periwinkle band */
+@media (max-width: 768px) {
+  .hero-edition-line[class] { bottom: calc(var(--band-h) + 8vw) !important; padding-bottom: 0 !important; }
+}
+
+/* PHONES (corrected): the words sit centred in the dark strip right above the band */
+@media (max-width: 768px) {
+  .hero-edition-line[class] {
+    bottom: var(--band-h) !important;
+    height: 9vw !important;
+    padding-top: 0 !important; padding-bottom: 0 !important;
+    align-items: center !important;
+  }
+  :root { --mobile-line-h: 9vw; }
+}
+
+/* Marking the text on a work's page leaves no highlight box behind it */
+#project-modal ::selection { background: transparent; color: inherit; }
+#project-modal ::-moz-selection { background: transparent; color: inherit; }
+
+/* The caption text on a work's page can't be marked, and nothing darkens
+   behind it (no selection, hover or focus box) */
+#project-modal .modal-caption-view,
+#project-modal .modal-caption-view *,
+#project-modal .modal-caption-lines,
+#project-modal .modal-caption-lines * {
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  -webkit-tap-highlight-color: transparent;
+}
+#project-modal .modal-caption-view:hover,
+#project-modal .modal-caption-view:focus,
+#project-modal .modal-caption-view:active,
+#project-modal .modal-caption-view *:hover,
+#project-modal .modal-caption-view *:focus,
+#project-modal .modal-caption-view *:active {
+  background: transparent !important;
+  background-color: transparent !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* PHONES, works page: the works a little bigger, the list a little smaller */
+@media (max-width: 768px) {
+  :root { --works-rail-h: calc(73dvh - var(--works-top)); }
+  .works-index-item[class] { min-height: 28px; font-size: 0.6rem; }
+  #works-index[class] { padding-top: 0.6rem; }
+}
+
+/* WORKS, wide screens too: every work in a frame cut to its own picture, all at the
+   same height (small works are brought up to size), two rows side by side */
+.projects-grid.works-rail-track.hug[class] {
+  display: block !important;
+  position: relative;
+  width: var(--hug-w) !important;
+  height: var(--hug-h);
+  flex: none;
+}
+.works-rail-track.hug .project-item.works-card[class] { position: absolute; margin: 0; }
+.works-rail-track.hug .media-container.works-thumb[class] { aspect-ratio: auto; }
+@media (min-width: 769px) {
+  .works-index-item[class] { font-size: 0.68rem; }
+}
+
+/* the edit fields must stay typeable: the no-select rule above is for the READING view only */
+#project-modal .modal-caption-edit,
+#project-modal .modal-caption-edit *,
+#project-modal .modal-field,
+#project-modal input,
+#project-modal textarea,
+#project-modal [contenteditable="true"] {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+}
+
+/* PHONES: while a work's own page is open, the page's grain is switched off, so the
+   picture is seen clean (the files are already grainy; the overlay made them look dusty) */
+@media (max-width: 768px) {
+  body:has(#project-modal.active) svg.riso-grain { display: none !important; }
+}
+
+
+/* GRAIN: one fine, even, plain grain on every screen (the lumpy SVG noise is off), and much gentler */
+body.has-plain-grain svg.riso-grain { display: none !important; }
+.plain-grain[class] { position: fixed; inset: 0; z-index: 9200; pointer-events: none; opacity: 0.26 !important; }
+
+/* the numbers and their cords stand a little higher above the works (they were too close) */
+.works-card .works-num[class] { margin-bottom: 2.35rem; }
+@media (max-width: 768px) {
+  .works-card .works-num[class] { margin-bottom: 1.1rem; }
+}
+
+/* PHONES, inside a work's page: the caption type a little smaller, so the work gets more room and sits centred */
+@media (max-width: 768px) {
+  #project-modal .modal-work-title[class] { font-size: 0.88rem; margin-bottom: 0.5rem; }
+  #project-modal .modal-work-body[class] { font-size: 0.66rem; line-height: 1.42; }
+  #project-modal .modal-work-no[class],
+  #project-modal .modal-work-stamp[class],
+  #project-modal .modal-work-credit[class] { font-size: 0.5rem; }
+  #project-modal .modal-caption-glyph { width: 22px; height: 22px; }
+}

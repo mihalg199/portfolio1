@@ -91,43 +91,6 @@
     "format": "POSTER"
   },
   {
-    "id": "work-1790537287856",
-    "title": "Frame Rave — Jerusalem Animation Festival",
-    "subtitle": "Visual identity, animated motion poster, print posters, and social media assets (lineups, reels, and stories) for the annual festival party.",
-    "category": "Motion & Screen Graphics",
-    "catTag": "motion",
-    "year": "",
-    "client": "",
-    "role": "",
-    "toolkit": "",
-    "asset": "",
-    "videoAsset": "esset/reel_reel.mp4",
-    "isVideo": true,
-    "aspectRatio": "9/16",
-    "gallery": [
-      "esset/reel_reel.mp4"
-    ],
-    "description": "Visual identity, animated motion poster, print posters, and social media assets (lineups, reels, and stories) for the annual festival party.",
-    "format": "POSTER"
-  },
-  {
-    "id": "work-1787232882040",
-    "title": "Venus Sucks - Sivan Eyal",
-    "subtitle": "UI simulation and motion design created for Sivan Elai’s film, Venus the Provider (ונוס הנותנת). The project involved designing simulated operating systems and desktop environments, alongside a nostalgic early-2000s Omegle-inspired chat interface. In addition, I designed the film's title graphics and opening/closing credit rolls.",
-    "category": "Motion & Screen Graphics",
-    "catTag": "motion",
-    "year": "2026",
-    "client": "Mihal Gurevich Studio",
-    "role": "Motion Lead",
-    "toolkit": "After Effects, Blender",
-    "asset": "",
-    "videoAsset": "esset/sivan.mp4",
-    "isVideo": true,
-    "aspectRatio": "16/9",
-    "description": "UI simulation and motion design created for Sivan Elai’s film, Venus the Provider (ונוס הנותנת). The project involved designing simulated operating systems and desktop environments, alongside a nostalgic early-2000s Omegle-inspired chat interface. In addition, I designed the film's title graphics and opening/closing credit rolls.",
-    "format": "ANIMATION"
-  },
-  {
     "id": "work-3",
     "title": "Party poster",
     "subtitle": "",
@@ -146,45 +109,23 @@
     "plateScale": 1
   },
   {
-    "id": "work-1789298254739",
-    "title": "I like trains",
-    "subtitle": "",
-    "category": "",
+    "id": "work-1795362356851",
+    "title": "Visual experimant",
+    "subtitle": "expressive poster with cloth simulation and toilet paper texture",
+    "category": "Motion & Screen Graphics",
     "catTag": "motion",
-    "year": "2026",
+    "year": "",
     "client": "",
-    "role": "Motion Lead",
-    "toolkit": "After Effects, Blender",
+    "role": "",
+    "toolkit": "",
     "asset": "",
-    "videoAsset": "esset/m_cdaa879521.mp4",
-    "isVideo": true,
-    "aspectRatio": "16/9",
-    "description": "",
-    "format": "ANIMATION"
-  },
-  {
-    "id": "work-1787409117939",
-    "title": "Experimental animations",
-    "subtitle": "",
-    "category": "",
-    "catTag": "motion",
-    "year": "2024",
-    "client": "",
-    "role": "Motion Lead",
-    "toolkit": "After Effects, Blender",
-    "asset": "",
-    "videoAsset": "esset/m_e3da2b32bf.mp4",
+    "videoAsset": "esset/frame.mp4",
     "gallery": [
-      "esset/m_e3da2b32bf.mp4",
-      "esset/m_62cc126526.mp4",
-      "esset/m_d29d07378e.mp4",
-      "esset/m_32314dd7d8.mp4",
-      "esset/m_99d7366a43.mp4"
+      "esset/frame.mp4"
     ],
     "isVideo": true,
-    "aspectRatio": "1/1",
-    "description": "",
-    "format": "ANIMATION"
+    "aspectRatio": "3/4",
+    "description": "expressive poster with cloth simulation and toilet paper texture"
   },
   {
     "id": "work-2",
@@ -205,6 +146,43 @@
     "isVideo": true,
     "aspectRatio": "9/16",
     "description": "Typography, Visual identity & Motion Poster",
+    "format": "ANIMATION"
+  },
+  {
+    "id": "work-1790537287856",
+    "title": "Frame Rave — Jerusalem Animation Festival",
+    "subtitle": "Visual identity, animated motion poster, print posters, and social media assets (lineups, reels, and stories) for the annual festival party.",
+    "category": "Motion & Screen Graphics",
+    "catTag": "motion",
+    "year": "",
+    "client": "",
+    "role": "",
+    "toolkit": "",
+    "asset": "",
+    "videoAsset": "esset/reel_reel.mp4",
+    "isVideo": true,
+    "aspectRatio": "9/16",
+    "gallery": [
+      "esset/reel_reel.mp4"
+    ],
+    "description": "Visual identity, animated motion poster, print posters, and social media assets (lineups, reels, and stories) for the annual festival party.",
+    "format": "POSTER"
+  },
+  {
+    "id": "work-1789298254739",
+    "title": "I like trains",
+    "subtitle": "",
+    "category": "",
+    "catTag": "motion",
+    "year": "2026",
+    "client": "",
+    "role": "Motion Lead",
+    "toolkit": "After Effects, Blender",
+    "asset": "",
+    "videoAsset": "esset/m_cdaa879521.mp4",
+    "isVideo": true,
+    "aspectRatio": "16/9",
+    "description": "",
     "format": "ANIMATION"
   },
   {
@@ -242,6 +220,30 @@
       "esset/m_f1940f6076.mp4"
     ],
     "description": "A car moving from point A to point B follows a clean, mechanical path. We often apply this same logic to our lives, hoping to move through obstacles without friction, seeking a \"correct\" way forward.\nInspired by Primo Levi’s If This Is a Man, this animation explores the idea that life’s \"troubles\" aren't just interruptions to be avoided. It is exactly this friction—the complications we try to bypass—that actually keeps us present.",
+    "format": "ANIMATION"
+  },
+  {
+    "id": "work-1787409117939",
+    "title": "Experimental animations",
+    "subtitle": "",
+    "category": "",
+    "catTag": "motion",
+    "year": "2024",
+    "client": "",
+    "role": "Motion Lead",
+    "toolkit": "After Effects, Blender",
+    "asset": "",
+    "videoAsset": "esset/m_e3da2b32bf.mp4",
+    "gallery": [
+      "esset/m_e3da2b32bf.mp4",
+      "esset/m_62cc126526.mp4",
+      "esset/m_d29d07378e.mp4",
+      "esset/m_32314dd7d8.mp4",
+      "esset/m_99d7366a43.mp4"
+    ],
+    "isVideo": true,
+    "aspectRatio": "1/1",
+    "description": "",
     "format": "ANIMATION"
   },
   {
@@ -305,48 +307,42 @@
     "format": "POSTER"
   },
   {
-    "id": "work-1789299678412",
-    "title": "Experiments",
-    "subtitle": "A collection of personal explorations and material experiments. This series blends diverse mediums, including intuitive animation, printmaking, and illustration.",
-    "category": "",
-    "catTag": "motion",
-    "year": "2026",
-    "client": "",
-    "role": "Motion Lead",
-    "toolkit": "After Effects, Blender",
-    "asset": "",
-    "videoAsset": "esset/m_3f83f2cb1a.mp4",
-    "gallery": [
-      "esset/m_3f83f2cb1a.mp4",
-      "esset/m_246a67cba1.mp4"
-    ],
-    "isVideo": true,
-    "aspectRatio": "1/1",
-    "description": "A collection of personal explorations and material experiments. This series blends diverse mediums, including intuitive animation, printmaking, and illustration.",
-    "format": ""
-  },
-  {
-    "id": "work-1790513172131",
-    "title": "Party poster",
-    "subtitle": "Visual identity, poster design, and Instagram grid branding. The project focused on building a coherent visual language across print and social media, translating core graphic motifs into versatile digital layouts, feed templates, and promotional event posters.",
-    "category": "",
+    "id": "work-1790538550667",
+    "title": "Healing Hatred - Selected Spreads",
+    "subtitle": "Book design for a 150-page handbook on fostering open and equitable dialogue.",
+    "category": "Motion & Screen Graphics",
     "catTag": "motion",
     "year": "",
     "client": "",
     "role": "",
     "toolkit": "",
-    "asset": "esset/Artboard_4.jpg",
+    "asset": "esset/1-cover-front-and-back.png",
     "videoAsset": "",
-    "isVideo": false,
-    "aspectRatio": "9/16",
     "gallery": [
-      "esset/Artboard_4.jpg",
-      "esset/Artboard_5.jpg",
-      "esset/Artboard_6.jpg",
-      "esset/m_55c0b166c2.mp4",
-      "esset/Artboard_1.jpg"
+      "esset/1-cover-front-and-back.png",
+      "esset/2-spread-part-II.png",
+      "esset/3-spread-core-principles.png"
     ],
-    "description": "Visual identity, poster design, and Instagram grid branding. The project focused on building a coherent visual language across print and social media, translating core graphic motifs into versatile digital layouts, feed templates, and promotional event posters.",
+    "isVideo": false,
+    "aspectRatio": "3/4",
+    "description": "Book design for a 150-page handbook on fostering open and equitable dialogue.",
+    "format": "BOOK"
+  },
+  {
+    "id": "work-1787232882040",
+    "title": "Venus Sucks - Sivan Eyal",
+    "subtitle": "UI simulation and motion design created for Sivan Elai’s film, Venus the Provider (ונוס הנותנת). The project involved designing simulated operating systems and desktop environments, alongside a nostalgic early-2000s Omegle-inspired chat interface. In addition, I designed the film's title graphics and opening/closing credit rolls.",
+    "category": "Motion & Screen Graphics",
+    "catTag": "motion",
+    "year": "2026",
+    "client": "Mihal Gurevich Studio",
+    "role": "Motion Lead",
+    "toolkit": "After Effects, Blender",
+    "asset": "",
+    "videoAsset": "esset/sivan.mp4",
+    "isVideo": true,
+    "aspectRatio": "16/9",
+    "description": "UI simulation and motion design created for Sivan Elai’s film, Venus the Provider (ונוס הנותנת). The project involved designing simulated operating systems and desktop environments, alongside a nostalgic early-2000s Omegle-inspired chat interface. In addition, I designed the film's title graphics and opening/closing credit rolls.",
     "format": "ANIMATION"
   },
   {
@@ -421,24 +417,28 @@
     "format": "TYPOGRAPHY"
   },
   {
-    "id": "work-1789302093075",
+    "id": "work-1790513172131",
     "title": "Party poster",
-    "subtitle": "",
+    "subtitle": "Visual identity, poster design, and Instagram grid branding. The project focused on building a coherent visual language across print and social media, translating core graphic motifs into versatile digital layouts, feed templates, and promotional event posters.",
     "category": "",
     "catTag": "motion",
     "year": "",
     "client": "",
     "role": "",
     "toolkit": "",
-    "asset": "esset/m_302e2a9033.png",
+    "asset": "esset/Artboard_4.jpg",
     "videoAsset": "",
-    "gallery": [
-      "esset/m_302e2a9033.png"
-    ],
     "isVideo": false,
     "aspectRatio": "9/16",
-    "description": "",
-    "format": "POSTER"
+    "gallery": [
+      "esset/Artboard_4.jpg",
+      "esset/Artboard_5.jpg",
+      "esset/Artboard_6.jpg",
+      "esset/m_55c0b166c2.mp4",
+      "esset/Artboard_1.jpg"
+    ],
+    "description": "Visual identity, poster design, and Instagram grid branding. The project focused on building a coherent visual language across print and social media, translating core graphic motifs into versatile digital layouts, feed templates, and promotional event posters.",
+    "format": "ANIMATION"
   },
   {
     "id": "work-1790517184980",
@@ -461,24 +461,24 @@
     "format": "ANIMATION"
   },
   {
-    "id": "work-1790517839084",
-    "title": "EMOTION INFORMATION",
-    "subtitle": "experimental poster",
-    "category": "Motion & Screen Graphics",
+    "id": "work-1789302093075",
+    "title": "Party poster",
+    "subtitle": "",
+    "category": "",
     "catTag": "motion",
     "year": "",
     "client": "",
     "role": "",
     "toolkit": "",
-    "asset": "",
-    "videoAsset": "esset/poster_01_static_2.mp4",
+    "asset": "esset/m_302e2a9033.png",
+    "videoAsset": "",
     "gallery": [
-      "esset/poster_01_static_2.mp4"
+      "esset/m_302e2a9033.png"
     ],
-    "isVideo": true,
-    "aspectRatio": "3/4",
-    "description": "experimental poster",
-    "format": "ANIMATION"
+    "isVideo": false,
+    "aspectRatio": "9/16",
+    "description": "",
+    "format": "POSTER"
   },
   {
     "id": "work-1794339272648",
@@ -635,6 +635,95 @@
     "format": "BOOK"
   },
   {
+    "id": "work-1790517839084",
+    "title": "EMOTION INFORMATION",
+    "subtitle": "experimental poster",
+    "category": "Motion & Screen Graphics",
+    "catTag": "motion",
+    "year": "",
+    "client": "",
+    "role": "",
+    "toolkit": "",
+    "asset": "",
+    "videoAsset": "esset/poster_01_static_2.mp4",
+    "gallery": [
+      "esset/poster_01_static_2.mp4"
+    ],
+    "isVideo": true,
+    "aspectRatio": "3/4",
+    "description": "experimental poster",
+    "format": "ANIMATION"
+  },
+  {
+    "id": "work-1789299678412",
+    "title": "Experiments",
+    "subtitle": "A collection of personal explorations and material experiments. This series blends diverse mediums, including intuitive animation, printmaking, and illustration.",
+    "category": "",
+    "catTag": "motion",
+    "year": "2026",
+    "client": "",
+    "role": "Motion Lead",
+    "toolkit": "After Effects, Blender",
+    "asset": "",
+    "videoAsset": "esset/m_3f83f2cb1a.mp4",
+    "gallery": [
+      "esset/m_3f83f2cb1a.mp4",
+      "esset/m_246a67cba1.mp4"
+    ],
+    "isVideo": true,
+    "aspectRatio": "1/1",
+    "description": "A collection of personal explorations and material experiments. This series blends diverse mediums, including intuitive animation, printmaking, and illustration.",
+    "format": ""
+  },
+  {
+    "id": "work-1794339878652",
+    "title": "Alternative Spread Proposals — Rossing Center",
+    "subtitle": "Exploratory grid and editorial directions created during the design process of the Book.",
+    "category": "Motion & Screen Graphics",
+    "catTag": "motion",
+    "year": "",
+    "client": "",
+    "role": "",
+    "toolkit": "",
+    "asset": "esset/8-example3-spread-3-CASQ-tip.png",
+    "videoAsset": "",
+    "isVideo": false,
+    "aspectRatio": "9/16",
+    "gallery": [
+      "esset/8-example3-spread-3-CASQ-tip.png",
+      "esset/6-example3-spread-1-chapter4.png",
+      "esset/7-example3-spread-2-partII-chapter5.png",
+      "esset/5-example2-spread-2.png",
+      "esset/4-example2-spread-1.png"
+    ],
+    "description": "Exploratory grid and editorial directions created during the design process of the Book.",
+    "format": "BOOK"
+  },
+  {
+    "id": "work-1795363532877",
+    "title": "ALBUM COVERS",
+    "subtitle": "Cover proposals that didn't make the final cut, kept for the archive",
+    "category": "Motion & Screen Graphics",
+    "catTag": "motion",
+    "year": "",
+    "client": "",
+    "role": "",
+    "toolkit": "",
+    "asset": "esset/ELIYA_5.jpg",
+    "videoAsset": "",
+    "isVideo": false,
+    "aspectRatio": "1/1",
+    "gallery": [
+      "esset/ELIYA_5.jpg",
+      "esset/eliya_red.jpg",
+      "esset/m_a2158ba704.jpg",
+      "esset/yellow_w.jpg",
+      "esset/Screenshot_2026-11-22_at_18.50.34.png"
+    ],
+    "description": "Cover proposals that didn't make the final cut, kept for the archive",
+    "format": "POSTER"
+  },
+  {
     "id": "work-1794339514541",
     "title": "story lineup 2",
     "subtitle": "Uploaded Project",
@@ -652,42 +741,8 @@
     "description": "Project work \"story lineup 2\" uploaded to portfolio."
   },
   {
-    "id": "work-1790538550667",
-    "title": "",
-    "subtitle": "",
-    "category": "Motion & Screen Graphics",
-    "catTag": "motion",
-    "year": "",
-    "client": "",
-    "role": "",
-    "toolkit": "",
-    "asset": "",
-    "videoAsset": "",
-    "gallery": [],
-    "isVideo": false,
-    "aspectRatio": "3/4",
-    "description": ""
-  },
-  {
-    "id": "work-1794339878652",
-    "title": "אנימציה",
-    "subtitle": "Uploaded Project",
-    "category": "Motion & Screen Graphics",
-    "catTag": "motion",
-    "year": "",
-    "client": "",
-    "role": "",
-    "toolkit": "",
-    "asset": "",
-    "videoAsset": "",
-    "isVideo": false,
-    "aspectRatio": "9/16",
-    "gallery": [],
-    "description": "Project work \"אנימציה\" uploaded to portfolio."
-  },
-  {
-    "id": "work-1790537278023",
-    "title": "",
+    "id": "work-1795363432624",
+    "title": "Album covers for Eliya Barashi",
     "subtitle": "",
     "category": "Motion & Screen Graphics",
     "catTag": "motion",

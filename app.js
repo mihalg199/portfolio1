@@ -1281,9 +1281,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!img || !clip) return;
 
     const place = () => {
-      const box = img.getBoundingClientRect();
+      // layout size of the still (its fit transform must not count), and the clip carries that same transform
+      const box = { width: img.offsetWidth, height: img.offsetHeight };
       const nw = img.naturalWidth, nh = img.naturalHeight;
       if (!nw || !nh || !box.width) return;
+      clip.style.setProperty('transform', 'translate(-50%, -50%) ' + (img.style.transform || ''), 'important');
       // The clip keeps ITS OWN proportions. It used to be stretched to the
       // still's, so any work whose still and film differ in shape (a square
       // cover over an A4 film, a 1.90 still over a 16:9 film) came out
@@ -2657,8 +2659,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const budget = plateBudget || Math.min(window.innerHeight * 0.56, 600);
     const ratios = items.map(galleryAspect);
 
-    let best = null;
-    for (let r = 1; r <= n; r++) {
+    const rowsFor = r => {
       const sizes = balancedRows(n, r);
       let h = (budget - GALLERY_GAP * (r - 1)) / r;
       let at = 0;
@@ -2667,18 +2668,49 @@ document.addEventListener('DOMContentLoaded', () => {
         h = Math.min(h, (width - GALLERY_GAP * (len - 1)) / sum);
         at += len;
       }
-      if (!best || h > best.h + 0.5) best = { h, sizes };
+      return { h, sizes };
+    };
+    let best = null;
+    for (let r = 1; r <= n; r++) {
+      const c = rowsFor(r);
+      if (!best || c.h > best.h + 0.5) best = c;
+    }
+    // PHONES, two works: tall (or square) ones stand side by side, centred;
+    // wide ones, which would be tiny beside each other, sit one above the other.
+    if (n === 2 && window.matchMedia('(max-width: 768px)').matches) {
+      best = rowsFor((ratios[0] + ratios[1]) / 2 <= 1.05 ? 1 : 2);
+    }
+
+    // PHONES: a dense gallery fitted to one screen leaves each work the size
+    // of a stamp (25 illustrations came out ~50px wide). Where fitting would
+    // make them that small, lay them two to a row at a size you can read and
+    // let the page scroll instead; the caption follows below.
+    let rowHeights = null;
+    let sizes = best.sizes;
+    if (window.matchMedia('(max-width: 768px)').matches && n > 2 && best.h < 60) {
+      sizes = [];
+      for (let i = 0; i < n; i += 2) sizes.push(Math.min(2, n - i));
+      const tallest = window.innerHeight * 0.6;
+      let from = 0;
+      rowHeights = sizes.map(len => {
+        const sum = ratios.slice(from, from + len).reduce((t, a) => t + a, 0);
+        from += len;
+        // an odd last work is the size of one cell of a pair, not the full page
+        const room = len === 1 ? (width - GALLERY_GAP) / 2 : width - GALLERY_GAP * (len - 1);
+        return Math.min(tallest, room / sum);
+      });
     }
 
     const h = Math.floor(best.h);
     const rows = [];
     let at = 0;
-    best.sizes.forEach(len => {
+    sizes.forEach((len, rowIdx) => {
+      const rh = rowHeights ? Math.floor(rowHeights[rowIdx]) : h;
       const row = document.createElement('div');
       row.className = 'gallery-row';
       items.slice(at, at + len).forEach((item, k) => {
-        item.style.height = h + 'px';
-        item.style.width = Math.floor(h * ratios[at + k]) + 'px';
+        item.style.height = rh + 'px';
+        item.style.width = Math.floor(rh * ratios[at + k]) + 'px';
         row.appendChild(item);
       });
       rows.push(row);
@@ -2709,8 +2741,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const card = document.querySelector('#project-modal .modal-card');
     if (!card) return;
+    // Measure the work at rest. With its transition running, the rect of an
+    // item that is still moving is read mid-flight and the target is skewed.
+    const keepTransition = item.style.transition;
+    item.style.transition = 'none';
     item.style.transform = '';
     const r = item.getBoundingClientRect();
+    void item.offsetWidth;
+    item.style.transition = keepTransition;
     const c = card.getBoundingClientRect();
     if (!r.width || !r.height) return;
     const pad = 24;
@@ -2719,25 +2757,32 @@ document.addEventListener('DOMContentLoaded', () => {
     // A work shown on its own is already large, so it may grow to the page's
     // full height (over its own caption, while the pointer is on it).
     const single = item.classList.contains('modal-gallery-single');
-    if (single) {
-      // Only posters and upright works: a film is already as wide as the page,
-      // and the pointer goes to it to mute it, not to have it jump.
-      const m = item.querySelector('img, video');
-      const ar = m ? mediaAspect(m) : 0;
-      const poster = currentModalProject && formatOf(currentModalProject) === 'POSTER';
-      if (!poster && !(ar > 0 && ar < 0.8)) return;
-    }
     const share = single ? (c.height - 2 * pad) / c.height : GALLERY_ZOOM_HEIGHT;
     const s = Math.min(GALLERY_ZOOM_MAX, (c.height * share) / r.height, (c.width - 2 * pad) / r.width);
-    if (s < (single ? 1.06 : 1.15)) return;     // no real gain: leave it
+    if (s < (single ? 1.03 : 1.15)) return;     // no real gain: leave it
     const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
     const hw = r.width * s / 2, hh = r.height * s / 2;
-    let dx = 0, dy = 0;
-    if (cx - hw < c.left + pad) dx = c.left + pad - (cx - hw);
-    else if (cx + hw > c.right - pad) dx = (c.right - pad) - (cx + hw);
-    if (cy - hh < c.top + pad) dy = c.top + pad - (cy - hh);
-    else if (cy + hh > c.bottom - pad) dy = (c.bottom - pad) - (cy + hh);
-    item.style.transform = 'translate(' + Math.round(dx) + 'px, ' + Math.round(dy) + 'px) scale(' + s.toFixed(3) + ')';
+    // A work that grows comes up in the MIDDLE of the screen, not pinned to
+    // whichever edge it happened to sit near.
+    // the middle of what is actually on screen (a phone's toolbars come and go)
+    const vv = window.visualViewport;
+    const top = Math.max(c.top, vv ? vv.offsetTop : 0);
+    const bottom = Math.min(c.bottom, vv ? vv.offsetTop + vv.height : window.innerHeight);
+    const left = Math.max(c.left, 0), right = Math.min(c.right, window.innerWidth);
+    const dx = (left + right) / 2 - cx;
+    const dy = (top + bottom) / 2 - cy;
+    // Place it, then check where it really landed and correct the difference,
+    // so it is centred on the screen every time whatever it sits inside.
+    const tf = (x, y) => 'translate(' + Math.round(x) + 'px, ' + Math.round(y) + 'px) scale(' + s.toFixed(3) + ')';
+    item.style.transition = 'none';
+    item.style.transform = tf(dx, dy);
+    const landed = item.getBoundingClientRect();
+    const fx = dx + ((left + right) / 2 - (landed.left + landed.width / 2));
+    const fy = dy + ((top + bottom) / 2 - (landed.top + landed.height / 2));
+    item.style.transform = '';
+    void item.offsetWidth;
+    item.style.transition = keepTransition;
+    item.style.transform = tf(fx, fy);
     item.style.setProperty('--zoom', s.toFixed(3));
     item.classList.add('is-zoomed');
   }
@@ -2746,11 +2791,12 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('#modal-media-wrapper .modal-gallery-scroll .gallery-card-item, #modal-media-wrapper .modal-gallery-single').forEach(item => {
       item.classList.remove('is-zoomed');
       item.style.transform = '';
-      if (item.dataset.hoverZoom) return;
-      item.dataset.hoverZoom = '1';
-      item.addEventListener('mouseenter', () => zoomItem(item, true));
-      item.addEventListener('mouseleave', () => zoomItem(item, false));
-      item.addEventListener('dragstart', () => zoomItem(item, false));
+      // Phones zoom on a tap instead (see the click handler): a touch also
+      // fires "hover" on iOS, which would zoom and then un-zoom on one tap.
+      // Wide screens too: no hover. The work grew under the pointer, which then
+      // was no longer over it, so it shrank, grew again... and kept moving.
+      // A click now brings it up and a click puts it back (same as on a phone).
+      return;
     });
   }
 
@@ -2817,14 +2863,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const leadAr = lead ? mediaAspect(lead) : 0;
     const upright = leadAr > 0 && leadAr < 0.8;
     const m = upright ? Math.max(18, Math.round(cardH * 0.025)) : plateMargin(cardH);
-    card.style.setProperty('--plate-margin', m + 'px');
+    // PHONES: an upright work is held back by height alone, so it gets the
+    // slimmest margins and a tighter caption (see .is-upright in the CSS).
+    const phoneNow = window.innerWidth <= 768;
+    const tall = phoneNow && !!lead && leadAr > 0 && leadAr < 0.8;
+    card.classList.toggle('is-upright', tall);
+    const m2 = tall ? 10 : m;
+    card.style.setProperty('--plate-margin', m2 + 'px');
     // The card's height comes from max-height, which a percentage min-height
     // cannot resolve against — so the block is given the screen in pixels.
     split.style.minHeight = Math.floor(cardH) + 'px';
 
     // Everything but the work: the margin above, the gap, the text, the margin below.
     plateBudget = Math.round((upright ? 1 : plateScaleFor()) *
-      Math.max(Math.round(cardH * 0.38), Math.floor(cardH - 3 * m - cap.offsetHeight)));
+      Math.max(Math.round(cardH * 0.38), Math.floor(cardH - 3 * m2 - cap.offsetHeight)));
 
     const single = wrapper.querySelector('.modal-gallery-single');
     const media = single && single.querySelector('img, video');
@@ -2845,9 +2897,67 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     layoutGalleryRows();
     bindHoverZoom();
+
+    // PHONES: a page that is taller than the screen ends with its text; give
+    // that end some black below it so the text never rests on the screen's
+    // bottom edge or under the buttons. Pages that fit are left as they were.
+    const phone = window.innerWidth <= 768;
+    // Judge the page only once its pictures have reported their sizes: before
+    // that the plate is measured against nothing, and the classes below flip
+    // on and off, which showed as the work jumping up and down.
+    if (!modalMediaReady()) return;
+    const scrolls = phone && split.offsetHeight > card.clientHeight - parseFloat(cs.paddingTop) - 44;
+    card.classList.toggle('is-scrolling', scrolls);
+
+    // A page that fits but whose text still ends within a thumb of the bottom
+    // edge is lifted: its work gives up a few pixels and the text rises. Once
+    // per work (the class is cleared when another work opens), so it settles.
+    const id = String(currentModalProject && currentModalProject.id);
+    if (card.dataset.lowFor !== id) {
+      card.dataset.lowFor = id;
+      card.classList.remove('is-low');
+    }
+    if (phone && !scrolls && !card.classList.contains('is-upright') && !card.classList.contains('is-low') &&
+        cap.getBoundingClientRect().bottom > window.innerHeight - 120) {
+      card.classList.add('is-low');
+      fitPlate();
+    }
+  }
+
+  let plateOpenedAt = 0;
+  function modalMediaReady() {
+    const w = document.getElementById('modal-media-wrapper');
+    return !!w &&
+      Array.from(w.querySelectorAll('img')).every(i => i.complete && i.naturalWidth) &&
+      Array.from(w.querySelectorAll('video')).every(v => v.videoWidth);
+  }
+
+  // Show the work once everything that moves it has run: the pictures' sizes,
+  // the caption's column count, the lift for text near the bottom.
+  function revealModalPlate() {
+    const pc = document.querySelector('#project-modal .modal-card');
+    if (pc && modalMediaReady()) pc.classList.remove('plate-fitting');
+  }
+
+  // As soon as the pictures have sizes: lay out, lay out once more a frame
+  // later (caption columns settle), then show the work.
+  function settleAndReveal() {
+    if (!modalMediaReady()) return;
+    alignCaptionToMedia();
+    requestAnimationFrame(() => { alignCaptionToMedia(); revealModalPlate(); });
   }
 
   function schedulePlateFit() {
+    // A new work starts clean and stays unseen until it is laid out for good,
+    // so it appears once, in place, and never shifts under the eye.
+    plateOpenedAt = performance.now();
+    const pc = document.querySelector('#project-modal .modal-card');
+    if (pc) {
+      pc.classList.remove('is-scrolling', 'is-low');
+      pc.classList.add('plate-fitting');
+      clearTimeout(schedulePlateFit.t);
+      schedulePlateFit.t = setTimeout(() => pc.classList.remove('plate-fitting'), 700);
+    }
     fitPlate();
     const wrapper = document.getElementById('modal-media-wrapper');
     if (!wrapper) return;
@@ -2871,14 +2981,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const wrapper = document.getElementById('modal-media-wrapper');
     if (wrapper) {
       wrapper.querySelectorAll('video').forEach(v => {
-        v.addEventListener('loadedmetadata', alignCaptionToMedia, { once: true });
+        v.addEventListener('loadedmetadata', settleAndReveal, { once: true });
       });
       wrapper.querySelectorAll('img').forEach(im => {
-        if (!im.complete) im.addEventListener('load', alignCaptionToMedia, { once: true });
+        if (!im.complete) im.addEventListener('load', settleAndReveal, { once: true });
       });
     }
     setTimeout(alignCaptionToMedia, 120);
-    setTimeout(alignCaptionToMedia, 450);
+    setTimeout(settleAndReveal, 0);
+    setTimeout(() => { alignCaptionToMedia(); revealModalPlate(); }, 450);
   }
 
   window.addEventListener('resize', alignCaptionToMedia);
@@ -3362,8 +3473,37 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Warm the next works: while one is open, the pictures and clips of the
+  // works either side of it are fetched, so stepping on finds them ready.
+  const warmedMedia = new Map();
+  function warmProjectMedia(p) {
+    if (!p) return;
+    const urls = [];
+    (Array.isArray(p.gallery) ? p.gallery : []).forEach(u => urls.push(u));
+    if (p.videoAsset) urls.push(p.videoAsset);
+    if (p.asset) urls.push(p.asset);
+    urls.slice(0, 6).forEach(u => {
+      if (!u || u.startsWith('blob:') || warmedMedia.has(u)) return;
+      let el;
+      if (isVideoUrl(u)) {
+        el = document.createElement('video');
+        el.preload = 'auto'; el.muted = true; el.src = u;
+      } else {
+        el = new Image(); el.decoding = 'async'; el.src = u;
+      }
+      warmedMedia.set(u, el);
+      if (warmedMedia.size > 40) warmedMedia.delete(warmedMedia.keys().next().value);
+    });
+  }
+  function warmNeighbours(data) {
+    const i = projects.findIndex(p => p.id === data.id);
+    if (i < 0) return;
+    [1, -1, 2, -2].forEach((d, k) => setTimeout(() => warmProjectMedia(projects[i + d]), 250 + k * 250));
+  }
+
   function openProjectModal(data) {
     currentModalProject = data;
+    warmNeighbours(data);
     modalSoundOn = true; // every project opens with its sound
 
     // STOP SHOWREEL MUSIC IMMEDIATELY WHEN ENTERING ANY PROJECT
@@ -3951,6 +4091,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const modalPrevBtn = document.getElementById('modal-prev-project-btn');
   const modalNextBtn = document.getElementById('modal-next-project-btn');
 
+  // Phones: the close button beside the arrows (hidden on desktop).
+  const modalClosePhoneBtn = document.getElementById('modal-close-phone');
+  if (modalClosePhoneBtn) {
+    modalClosePhoneBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeModal();
+    });
+  }
+
   function navigateProject(direction) {
     if (!currentModalProject || !projects || projects.length === 0) return;
     const currentIdx = projects.findIndex(p => p.id === currentModalProject.id);
@@ -4006,6 +4155,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // a zoomed work goes back when the page is scrolled out from under it
+  const zoomScrollCard = document.querySelector('#project-modal .modal-card');
+  if (zoomScrollCard) {
+    zoomScrollCard.addEventListener('scroll', () => {
+      document.querySelectorAll('#modal-media-wrapper .is-zoomed').forEach(el => zoomItem(el, false));
+    }, { passive: true });
+  }
+
   if (modalNextBtn) {
     modalNextBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -4025,6 +4182,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const t = e.target;
       if (!t || !t.closest) return;
       if (t.closest('button, input, textarea, select, a, label, .modal-tools, .modal-edit-actions, .modal-caption-edit')) return;
+      // Phones have no hover: a tap on one work of a gallery brings it up
+      // in the middle of the screen, a tap anywhere then puts it back.
+      if (true) {
+        const up = document.querySelector('#modal-media-wrapper .is-zoomed');
+        if (up) { zoomItem(up, false); return; }
+        const gi = t.closest('.gallery-card-item');
+        if (gi && !gi.classList.contains('modal-gallery-single')) { zoomItem(gi, true); return; }
+      }
       if (t.closest('#modal-media-wrapper img, #modal-media-wrapper video, .gallery-card-item')) {
         toggleModalSound();
         return;
@@ -4101,6 +4266,253 @@ document.addEventListener('DOMContentLoaded', () => {
   const showreelSection = document.getElementById('showreel');
   const worksRail = document.getElementById('works-rail');
 
+  // PHONES: THE LIST FOLLOWS THE RAIL.
+  // The titles under the works belong to the works above them. As the rail
+  // slides, the list moves to the same works (a column of two works = one row
+  // of two titles) and marks the ones in view, so a visitor can enter by the
+  // picture or by its words.
+  (function listFollowsRail() {
+    const list = document.getElementById('works-index');
+    if (!worksRail || !list) return;
+    let queued = false;
+    function sync() {
+      queued = false;
+      if (window.innerWidth > 768) {
+        list.querySelectorAll('.in-view').forEach(el => el.classList.remove('in-view'));
+        list.classList.remove('follows-rail');
+        return;
+      }
+      const rr = worksRail.getBoundingClientRect();
+      const cards = Array.from(worksRail.querySelectorAll('.works-card'));
+      const items = Array.from(list.querySelectorAll('.works-index-item'));
+      if (!cards.length || cards.length !== items.length) return;
+      let first = -1;
+      cards.forEach((c, i) => {
+        const r = c.getBoundingClientRect();
+        const seen = r.left + r.width * 0.5 > rr.left && r.left + r.width * 0.5 < rr.right;
+        items[i].classList.toggle('in-view', seen);
+        if (seen && first < 0) first = i;
+      });
+      list.classList.add('follows-rail');
+      if (first >= 0) {
+        const lr = list.getBoundingClientRect();
+        const top = items[first].getBoundingClientRect().top - lr.top + list.scrollTop - parseFloat(getComputedStyle(list).paddingTop);
+        list.scrollTop = Math.max(0, top);
+      }
+    }
+    const queue = () => { if (!queued) { queued = true; requestAnimationFrame(sync); } };
+    worksRail.addEventListener('scroll', queue, { passive: true });
+    window.addEventListener('resize', queue);
+    window.addEventListener('mihal:stage-works', queue);
+    window.addEventListener('mihal:portfolio-rendered', queue);
+  })();
+
+  // PHONES: WORKS THAT SIT SMALL IN A BLACK SQUARE.
+  // Several stills carry a wide black margin inside the file, so inside their
+  // box they read much smaller than the rest. Find where the picture really
+  // is, and enlarge it to fill the box like the others (never cropping it).
+  const WORK_FILL = { 1: 1.1 };   // work no. 02: its poster sits tilted in its file, so it is filled a little more
+  function fitThumbContent(img) {
+    if (!img || !img.naturalWidth) return;
+    const box = img.parentElement.getBoundingClientRect();
+    if (!box.width) return;
+    try {
+      const W = 72, H = Math.max(8, Math.round(W * img.naturalHeight / img.naturalWidth));
+      const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+      const g = cv.getContext('2d', { willReadFrequently: true });
+      g.drawImage(img, 0, 0, W, H);
+      const d = g.getImageData(0, 0, W, H).data;
+      const rows = new Array(H).fill(0), cols = new Array(W).fill(0);
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+        const i = (y * W + x) * 4;
+        const lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+        if (d[i + 3] > 40 && lum > 30) { rows[y]++; cols[x]++; }
+      }
+      const rMin = Math.max(1, Math.round(W * 0.02)), cMin = Math.max(1, Math.round(H * 0.02));
+      let y0 = rows.findIndex(n => n >= rMin), y1 = H - 1 - rows.slice().reverse().findIndex(n => n >= rMin);
+      let x0 = cols.findIndex(n => n >= cMin), x1 = W - 1 - cols.slice().reverse().findIndex(n => n >= cMin);
+      if (y0 < 0 || x0 < 0 || y1 <= y0 || x1 <= x0) return;
+      const cw = (x1 - x0 + 1) / W, ch = (y1 - y0 + 1) / H;
+      const cx = (x0 + x1 + 1) / 2 / W, cy = (y0 + y1 + 1) / 2 / H;
+      const nw = img.naturalWidth, nh = img.naturalHeight;
+      const k = Math.min(box.width / nw, box.height / nh);       // contain
+      const idxCard = Array.prototype.indexOf.call(document.querySelectorAll('.works-card'), img.closest('.works-card'));
+      const xz = WORK_FILL[idxCard] || 1;
+      const s = Math.min((xz > 1 || idxCard === 2) ? 4.2 : 2.6, xz * Math.min(box.width * 0.96 / (cw * nw * k), box.height * 0.96 / (ch * nh * k)));
+      if (s < 1.12) return;
+      const ox = (cx - 0.5) * nw * k, oy = (cy - 0.5) * nh * k;
+      img.style.transform = 'scale(' + s.toFixed(3) + ') translate(' + (-ox).toFixed(1) + 'px,' + (-oy).toFixed(1) + 'px)';
+      const cardEl = img.closest('.works-card'); if (cardEl && cardEl._placeClip) cardEl._placeClip();
+    } catch (e) { /* a file the page may not read: leave it as it was */ }
+  }
+  function fitAllThumbContent() {
+    document.querySelectorAll('.works-card .thumb-img').forEach(img => {
+      img.style.transform = '';
+      if (img.complete) fitThumbContent(img);
+      else img.addEventListener('load', () => fitThumbContent(img), { once: true });
+    });
+  }
+  // PHONES: EVEN SPACING BETWEEN THE WORKS.
+  // Square boxes with a work centred inside left uneven gaps: a wide film sat
+  // in a pool of black, a tall poster in two. Each work now has a frame cut to
+  // its own visible shape, all the same height, and the two rows run
+  // sideways independently — so the gap between any two works, across or
+  // down, is the same measure.
+  function contentAspectOf(img) {
+    if (img.dataset.car) return Number(img.dataset.car);
+    const nw = img.naturalWidth, nh = img.naturalHeight;
+    let ar = nw && nh ? nw / nh : 1;
+    try {
+      const W = 72, H = Math.max(8, Math.round(W * nh / nw));
+      const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+      const g = cv.getContext('2d', { willReadFrequently: true });
+      g.drawImage(img, 0, 0, W, H);
+      const d = g.getImageData(0, 0, W, H).data;
+      const rows = new Array(H).fill(0), cols = new Array(W).fill(0);
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+        const i = (y * W + x) * 4;
+        const lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+        if (d[i + 3] > 40 && lum > 30) { rows[y]++; cols[x]++; }
+      }
+      const rMin = Math.max(1, Math.round(W * 0.02)), cMin = Math.max(1, Math.round(H * 0.02));
+      const y0 = rows.findIndex(n => n >= rMin), y1 = H - 1 - rows.slice().reverse().findIndex(n => n >= rMin);
+      const x0 = cols.findIndex(n => n >= cMin), x1 = W - 1 - cols.slice().reverse().findIndex(n => n >= cMin);
+      if (y0 >= 0 && x0 >= 0 && y1 > y0 && x1 > x0) {
+        ar = ((x1 - x0 + 1) / W * nw) / ((y1 - y0 + 1) / H * nh);
+      }
+    } catch (e) { /* unreadable file: its own shape */ }
+    img.dataset.car = String(ar);
+    return ar;
+  }
+
+  const WORK_BOOST = {};   // index 2 = work no. 03, shown 22% larger
+  function layoutWorksRail() {
+    const track = document.getElementById('projects-grid');
+    if (!track || !track.classList.contains('works-rail-track')) return;
+    const cards = Array.from(track.querySelectorAll('.works-card'));
+    const clear = () => {
+      track.classList.remove('hug');
+      track.style.removeProperty('--hug-w'); track.style.removeProperty('--hug-h');
+      cards.forEach(c => {
+        c.style.left = c.style.top = '';
+        c.style.removeProperty('width');
+        const t = c.querySelector('.works-thumb'); if (t) t.style.height = '';
+      });
+    };
+    const desktop = window.innerWidth > 768;
+    if (!cards.length) return;
+    const root = document.documentElement;
+    const rem = parseFloat(getComputedStyle(root).fontSize);
+    // the number above each work, measured once, un-hugged
+    track.classList.remove('hug');
+    cards.forEach(c => { c.style.removeProperty('width'); });
+    const num = cards[0].querySelector('.works-num');
+    const numBlock = num ? Math.round(num.getBoundingClientRect().height +
+      parseFloat(getComputedStyle(num).marginBottom)) : 40;
+    let H, vgap, gap;
+    if (desktop) {
+      // wide screens: every work is shown at the same height and is as wide as its
+      // own picture, as large as the room in the rail allows (small works included)
+      const rail = track.closest('.works-rail') || document.querySelector('#portfolio-grid .works-rail');
+      const R = rail ? rail.clientHeight : 0;
+      if (!R) return;
+      const topMin = 2.6 * rem;
+      let A = 4 * rem;
+      let h = (R - topMin - 2 * numBlock - 2 * A) / 2;
+      if (h < 110) { A = Math.max(1.4 * rem, (R - topMin - 2 * numBlock - 220) / 2); h = (R - topMin - 2 * numBlock - 2 * A) / 2; }
+      H = Math.round(Math.max(60, Math.min(190, h)));
+      vgap = Math.round(A);
+      gap = 2.4 * rem;
+      root.style.setProperty('--desk-s', '1');
+      root.style.setProperty('--works-air', vgap + 'px');
+    } else {
+      // the height every work is shown at: what a square box was
+      const probe = document.createElement('div');
+      probe.style.cssText = 'position:absolute;visibility:hidden;height:1px;width:var(--works-box)';
+      document.body.appendChild(probe);
+      H = Math.round(probe.getBoundingClientRect().width);
+      probe.style.width = 'var(--row-extra)';
+      const extra = Math.round(probe.getBoundingClientRect().width);
+      probe.remove();
+      if (!H) return;
+      gap = rem * 2.6;
+      // the same measure between row one and row two as between row two and the list
+      vgap = gap + extra - 14;
+    }
+    const maxW = Math.round(window.innerWidth * (desktop ? 0.35 : 0.7));
+    // phones: a little smaller and closer, so more works come into each swipe
+    if (!desktop) { H = Math.round(H * 0.96); gap = gap * 0.86; }
+    const sizes = cards.map((c, i) => {
+      const img = c.querySelector('.thumb-img');
+      const ar = img && img.naturalWidth ? contentAspectOf(img) : 1;
+      const Hc = Math.round(H * (WORK_BOOST[i] || 1));
+      const w = Math.round(Math.min(maxW, Math.max(Hc * 0.55, Hc * ar * (WORK_FILL[i] || 1))));
+      return { w, Hc };
+    });
+    // the numbers read along the rows in blocks (1-5 on the top row, 6-10 under them, ...). On a phone the
+    // block length that leaves the two rows ending closest together is used, so no black is left at the end.
+    let B = 5;
+    if (true) {
+      let best = null;
+      [5, 4, 6, 3, 7, 8].forEach(cand => {
+        const cur = [0, 0];
+        sizes.forEach((z, i) => { cur[Math.floor(i / cand) % 2] += z.w + gap; });
+        const diff = Math.abs(cur[0] - cur[1]);
+        if (!best || diff < best.diff - 24) best = { cand, diff };   // keep 5 unless another is clearly better
+      });
+      B = best.cand;
+    }
+    const cursor = [0, 0];
+    cards.forEach((c, i) => {
+      const { w, Hc } = sizes[i];
+      const row = Math.floor(i / B) % 2;
+      c.style.setProperty('width', w + 'px', 'important');
+      c.style.left = cursor[row] + 'px';
+      c.style.top = row * (numBlock + H + vgap) + 'px';
+      const t = c.querySelector('.works-thumb'); if (t) t.style.height = Hc + 'px';
+      cursor[row] += w + gap;
+    });
+    track.style.setProperty('--hug-w', Math.round(Math.max(cursor[0], cursor[1]) - gap) + 'px');
+    track.style.setProperty('--hug-h', (2 * (numBlock + H) + vgap) + 'px');
+    track.classList.add('hug');
+  }
+  // Wide screens: on a short window the two rows must fit inside the rail with a
+  // little black above them (like the black line at the foot), so the numbers and
+  // cords of the top row are never cut off. Everything shrinks together.
+  function fitDesktopWorks() {
+    const root = document.documentElement;
+    if (window.innerWidth <= 768) { root.style.removeProperty('--desk-s'); return; }
+    const rail = document.querySelector('#portfolio-grid .works-rail');
+    const grid = document.getElementById('projects-grid');
+    const card = grid && grid.querySelector('.works-card');
+    if (!rail || !card || !rail.clientHeight) return;
+    root.style.setProperty('--desk-s', '1');
+    const rem = parseFloat(getComputedStyle(root).fontSize);
+    const thumb = card.querySelector('.works-thumb');
+    const thumbH = thumb ? thumb.getBoundingClientRect().height : 0;
+    if (!thumbH) return;
+    const nb = card.getBoundingClientRect().height - thumbH;     // number block
+    const air0 = 4 * rem, topMin = 2.6 * rem;
+    const s = (rail.clientHeight - 2 * nb - topMin) / (2 * thumbH + 2 * air0);
+    root.style.setProperty('--desk-s', Math.max(0.45, Math.min(1, s)).toFixed(3));
+  }
+  function layoutAndFitWorks() {
+    fitDesktopWorks();
+    layoutWorksRail();
+    fitAllThumbContent();
+    window.dispatchEvent(new Event('mihal:works-laid-out'));
+  }
+  window.addEventListener('mihal:stage-works', () => { setTimeout(() => { try { projects.slice(0, 4).forEach(warmProjectMedia); } catch (e) {} }, 1200); });
+  window.addEventListener('mihal:stage-works', layoutAndFitWorks);
+  window.addEventListener('mihal:portfolio-rendered', layoutAndFitWorks);
+  window.addEventListener('resize', () => { clearTimeout(layoutAndFitWorks.t); layoutAndFitWorks.t = setTimeout(layoutAndFitWorks, 150); });
+  // pictures arrive after the first pass: lay out again as they do
+  document.addEventListener('load', (e) => {
+    if (e.target && e.target.classList && e.target.classList.contains('thumb-img')) {
+      clearTimeout(layoutAndFitWorks.t2); layoutAndFitWorks.t2 = setTimeout(layoutAndFitWorks, 80);
+    }
+  }, true);
+
   // Stage 0: hero alone.  Stage 1: the reel rises and takes the screen.
   // Stage 2: the works come up as their own panel.
   // Stages only ever advance, so a small scroll never knocks the page back.
@@ -4138,13 +4550,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // The arrow beside PORTFOLIO says "scroll"; clicking it does the same thing.
-  const scrollCue = document.querySelector('.scroll-cue');
-  if (scrollCue) {
-    const goOn = (e) => { e.preventDefault(); e.stopPropagation(); setStage(stage + 1); };
-    scrollCue.addEventListener('click', goOn);
-    scrollCue.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') goOn(e); });
-  }
+  // The word PORTFOLIO and its arrow (hero), and SHOWREEL and its arrow (reel),
+  // say "scroll"; clicking either does the same thing: on to the next panel.
+  document.querySelectorAll('.scroll-cue-host').forEach((host) => {
+    const from = Number(host.dataset.from);
+    const goOn = (e) => {
+      if (stage !== from) return;
+      e.preventDefault(); e.stopPropagation();
+      setStage(from + 1);
+    };
+    host.addEventListener('click', goOn);
+    const cue = host.querySelector('.scroll-cue');
+    if (cue) cue.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') goOn(e); });
+  });
 
   // While a stage is still collapsed the document may not be tall enough to
   // scroll at all, so intent is taken from the wheel/touch as well as scrollY.
@@ -4298,8 +4716,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Touch: the axis is decided by the first few pixels of the drag and held
   // for the rest of it. A sideways drag is left to the row's own native
   // scrolling and never counts towards changing panel.
-  let lastTouchY = null, touchStartX = 0, touchStartY = 0, touchAxis = null;
+  let lastTouchY = null, touchStartX = 0, touchStartY = 0, touchAxis = null, touchStartEl = null;
   window.addEventListener('touchstart', (e) => {
+    touchStartEl = e.target;
     if (!e.touches.length) { lastTouchY = null; return; }
     lastTouchY = touchStartY = e.touches[0].clientY;
     touchStartX = e.touches[0].clientX;
@@ -4319,6 +4738,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // On a phone the works panel is taller than the screen (one column of
     // titles with full-size tap rows), so an up/down drag scrolls it natively.
     // Only a pull down from its very top goes back to the showreel.
+    if (stage === 2 && window.innerWidth <= 768) {
+      // The works are a rail that runs sideways, with the list of titles
+      // under it. A drag that starts on the list scrolls the list; on the
+      // rail, up/down does nothing but a pull down from the top walks back
+      // to the reel. (Sideways is the rail's own native scroll, above.)
+      const list = document.getElementById('works-index');
+      if (list && touchStartEl && list.contains(touchStartEl) &&
+          list.scrollHeight - list.clientHeight > 2) {
+        if (list.scrollTop > 0 || delta > 0) return;
+      }
+      if (delta > 0) return;
+      advanceOnIntent(delta);
+      return;
+    }
     if (stage === 2) {
       const sec = document.getElementById('portfolio-grid');
       if (sec && sec.scrollHeight - sec.clientHeight > 2) {
@@ -5274,7 +5707,11 @@ document.addEventListener('DOMContentLoaded', () => {
       // pinned at each number in turn, and on out to the right edge — the
       // spans chained, each hanging on its own (the same sag and the same
       // take-up as the cords on a wide screen).
-      const edgeToEdge = window.innerWidth <= 768;
+      // (Only where the works run down the page in rows. On a phone the works
+      // now run sideways in a rail again, and its cords string number to
+      // number just as they do on a wide screen.)
+      const edgeToEdge = window.innerWidth <= 768 &&
+        getComputedStyle(grid).gridAutoFlow.indexOf('column') === -1;
       const screenLeft = -gridRect.left;
       const screenRight = window.innerWidth - gridRect.left;
       rows.forEach(row => {
@@ -5323,6 +5760,7 @@ document.addEventListener('DOMContentLoaded', () => {
       worksCordResizeTimer = setTimeout(rebuildWorksCords, 120);
     });
     window.addEventListener('mihal:portfolio-rendered', rebuildWorksCords);
+    window.addEventListener('mihal:works-laid-out', rebuildWorksCords);
     // The grid may already have been laid out before this module ran, in
     // which case that event has been and gone. Build once on our own account,
     // and again whenever the works stage comes up — the grid can only be
@@ -6668,6 +7106,123 @@ document.addEventListener('DOMContentLoaded', () => {
     requestAnimationFrame(tick);
   }
   initRisoFlicker();
+
+  // DESKTOP: plain grain. One continuous field of fine speckle, one pixel of
+  // the screen per grain, over the whole page — no tiles, no blocks. Light
+  // acid speckle (it shows on the black) and dark speckle (it shows on the
+  // light parts), shifted a few times a second so it reads as film.
+  (function initPlainGrain() {
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+    const S = 512;
+    const cv = document.createElement('canvas'); cv.width = S; cv.height = S;
+    const g = cv.getContext('2d');
+    const img = g.createImageData(S, S);
+    for (let p = 0; p < S * S; p++) {
+      const r = Math.random();
+      const o = p * 4;
+      if (r < 0.30) {               // pale speckle: neutral grey-white, very light
+        img.data[o] = img.data[o + 1] = img.data[o + 2] = 255;
+        img.data[o + 3] = Math.random() * 38;
+      } else if (r < 0.62) {        // black speckle
+        img.data[o] = img.data[o + 1] = img.data[o + 2] = 0;
+        img.data[o + 3] = Math.random() * 120;
+      }
+    }
+    g.putImageData(img, 0, 0);
+    const el = document.createElement('div');
+    el.className = 'plain-grain';
+    el.setAttribute('aria-hidden', 'true');
+    el.style.backgroundImage = 'url(' + cv.toDataURL('image/png') + ')';
+    el.style.backgroundSize = (S / dpr) + 'px ' + (S / dpr) + 'px';
+    document.body.appendChild(el);
+    document.body.classList.add('has-plain-grain');
+    // Over the works' own images the grain is turned down (it stays full
+    // everywhere else, the right-hand panel included): the mask follows them.
+    // The grain is turned down over the PICTURE of each work (not over the black
+    // baked into its file, so no box shows): the mask follows the visible content.
+    const GRAIN_OVER_IMAGES = 0.35;
+    const GRAIN_OVER_PANEL = 0.4;
+    let lastSig = '';
+    const contentBox = (img) => {
+      if (img.dataset.cbox) return img.dataset.cbox.split(',').map(Number);
+      const nw = img.naturalWidth, nh = img.naturalHeight;
+      if (!nw || !nh) return null;
+      let box = [0, 0, 1, 1];
+      try {
+        const W = 72, H = Math.max(8, Math.round(W * nh / nw));
+        const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+        const g = cv.getContext('2d', { willReadFrequently: true });
+        g.drawImage(img, 0, 0, W, H);
+        const d = g.getImageData(0, 0, W, H).data;
+        const rows = new Array(H).fill(0), cols = new Array(W).fill(0);
+        for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+          const i = (y * W + x) * 4;
+          const lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+          if (d[i + 3] > 40 && lum > 30) { rows[y]++; cols[x]++; }
+        }
+        const rMin = Math.max(1, Math.round(W * 0.02)), cMin = Math.max(1, Math.round(H * 0.02));
+        const y0 = rows.findIndex(n => n >= rMin), y1 = H - 1 - rows.slice().reverse().findIndex(n => n >= rMin);
+        const x0 = cols.findIndex(n => n >= cMin), x1 = W - 1 - cols.slice().reverse().findIndex(n => n >= cMin);
+        if (y0 >= 0 && x0 >= 0 && y1 > y0 && x1 > x0) box = [x0 / W, y0 / H, (x1 + 1) / W, (y1 + 1) / H];
+      } catch (e) { /* unreadable: the whole picture */ }
+      img.dataset.cbox = box.join(',');
+      return box;
+    };
+    const followImages = () => {
+      const W = window.innerWidth, H = window.innerHeight;
+      const rects = [];
+      document.querySelectorAll('#project-modal #modal-media-wrapper img, #project-modal #modal-media-wrapper video').forEach(n => {
+        let b = n.getBoundingClientRect();
+        if (b.width < 4 || b.height < 4 || b.bottom < 0 || b.top > H || b.right < 0 || b.left > W) return;
+        if (parseFloat(getComputedStyle(n).opacity) === 0) return;
+        if (n.tagName === 'IMG' && n.naturalWidth) {
+          const cb = contentBox(n);
+          const k = Math.min(b.width / n.naturalWidth, b.height / n.naturalHeight);   // contain
+          const dw = n.naturalWidth * k, dh = n.naturalHeight * k;
+          const ox = b.left + (b.width - dw) / 2, oy = b.top + (b.height - dh) / 2;
+          b = { left: ox + cb[0] * dw, top: oy + cb[1] * dh, width: (cb[2] - cb[0]) * dw, height: (cb[3] - cb[1]) * dh };
+          if (b.width < 4 || b.height < 4) return;
+        }
+        // inside a work's own page the picture is shown clean (no grain over it): the file is already grainy, and the overlay made it look dusty
+        rects.push([Math.round(b.left), Math.round(b.top), Math.round(b.width), Math.round(b.height), n.closest('#project-modal') ? 1 : GRAIN_OVER_IMAGES]);
+        if (rects.length >= 60) return;
+      });
+      // the grey composition on the right: a little less grain
+      const panel = document.querySelector('.hero-side-panel');
+      if (panel) {
+        const pb = panel.getBoundingClientRect();
+        if (pb.width > 4 && pb.height > 4) rects.push([Math.round(pb.left), Math.round(pb.top), Math.round(pb.width), Math.round(pb.height), GRAIN_OVER_PANEL]);
+      }
+      const sig = rects.join('|');
+      if (sig !== lastSig) {
+        lastSig = sig;
+        if (!rects.length) {
+          el.style.maskImage = el.style.webkitMaskImage = 'none';
+        } else {
+          const imgs = rects.map(r => {
+            const a = 1 - (r[4] !== undefined ? r[4] : GRAIN_OVER_IMAGES);
+            return 'linear-gradient(rgba(0,0,0,' + a + '),rgba(0,0,0,' + a + '))';
+          }).concat('linear-gradient(#000,#000)').join(',');
+          const sizes = rects.map(r => r[2] + 'px ' + r[3] + 'px').concat('100% 100%').join(',');
+          const poss = rects.map(r => r[0] + 'px ' + r[1] + 'px').concat('0 0').join(',');
+          const comp = rects.map(() => 'exclude').concat('add').join(',');
+          const compW = rects.map(() => 'xor').concat('source-over').join(',');
+          el.style.maskImage = el.style.webkitMaskImage = imgs;
+          el.style.maskSize = el.style.webkitMaskSize = sizes;
+          el.style.maskPosition = el.style.webkitMaskPosition = poss;
+          el.style.maskRepeat = el.style.webkitMaskRepeat = 'no-repeat';
+          el.style.maskComposite = comp;
+          el.style.webkitMaskComposite = compW;
+        }
+      }
+      requestAnimationFrame(followImages);
+    };
+    followImages();
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    setInterval(() => {
+      el.style.backgroundPosition = Math.floor(Math.random() * S) + 'px ' + Math.floor(Math.random() * S) + 'px';
+    }, 110);
+  })();
 
   // Initialize Amorphous Hero Morphing Engine
   initHeroAmorphousMorph();

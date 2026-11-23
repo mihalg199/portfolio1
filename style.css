@@ -6259,3 +6259,16 @@ body.has-plain-grain svg.riso-grain { display: none !important; }
   #project-modal .modal-work-credit[class] { font-size: 0.5rem; }
   #project-modal .modal-caption-glyph { width: 22px; height: 22px; }
 }
+
+/* DESKTOP, opening screen: the name stays in the middle; the CV button sits on the same line, inside the dark
+   composition, about 2.5 cm before its right-hand edge (where the blue panel begins) */
+@media (min-width: 769px) {
+  body:not(.stage-works) .hero-name-below .hero-cv-link[class] {
+    position: absolute !important;
+    left: auto !important;
+    right: calc(13% + 2.5cm) !important;
+    top: 0 !important;
+    transform: none;
+    margin: 0 !important;
+  }
+}

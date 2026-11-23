@@ -898,6 +898,13 @@ document.addEventListener('DOMContentLoaded', () => {
       card.setAttribute('draggable', EDIT_MODE ? 'true' : 'false');
 
       let thumbPath = '';
+      // a small copy of the cover for the rail (made by gen_thumbs.py); if it is missing the original is used
+      let smallStill = '';
+      if (hasExplicitStaticImg && staticImgPath.startsWith('esset/')) {
+        const fn = staticImgPath.split('/').pop();
+        const dot = fn.lastIndexOf('.');
+        smallStill = 'esset/thumbs/' + fn.substring(0, dot) + '__t' + (/\.png$/i.test(fn) ? '.png' : '.jpg');
+      }
       if (isVid && videoPath.startsWith('esset/')) {
         const fileName = videoPath.split('/').pop();
         const baseName = fileName.substring(0, fileName.lastIndexOf('.'));
@@ -911,7 +918,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // through. The clip is layered over the still and only revealed on
         // hover, sized to the still's exact rect so it has no letterbox
         // either.
-        const stillPath = hasExplicitStaticImg ? staticImgPath
+        const stillPath = hasExplicitStaticImg ? (smallStill || staticImgPath)
                         : (thumbPath || 'esset/placeholder_thumb.jpg');
 
         // Counting UP from the left, in reading order. The rail fills
@@ -927,7 +934,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <input type="checkbox" class="card-select-checkbox" data-id="${proj.id}" ${window.selectedProjectIds && window.selectedProjectIds.has(proj.id) ? 'checked' : ''}>
             </div>
             ${`
-              <img src="${stillPath}" alt="${proj.title}" class="thumb-img" draggable="false" loading="eager"${hasExplicitStaticImg ? ` onerror="handleAssetError(this, '${staticImgPath}', '${proj.id}')"` : ''}>
+              <img src="${stillPath}" alt="${proj.title}" class="thumb-img" draggable="false" loading="eager"${hasExplicitStaticImg ? ` onerror="if(this.dataset.fb!=='1'&amp;&amp;'${smallStill}'!==''){this.dataset.fb='1';this.src='${staticImgPath}';return;}handleAssetError(this, '${staticImgPath}', '${proj.id}')"` : ''}>
               ${isVid ? `<video class="hover-video-loop" muted loop playsinline preload="none" draggable="false"><source src="${videoPath}" type="video/mp4"></video>` : ''}
             `}
           </div>

@@ -722,39 +722,5 @@
     ],
     "description": "Cover proposals that didn't make the final cut, kept for the archive",
     "format": "POSTER"
-  },
-  {
-    "id": "work-1794339514541",
-    "title": "story lineup 2",
-    "subtitle": "Uploaded Project",
-    "category": "Motion & Screen Graphics",
-    "catTag": "motion",
-    "year": "",
-    "client": "",
-    "role": "",
-    "toolkit": "",
-    "asset": "",
-    "videoAsset": "",
-    "isVideo": false,
-    "aspectRatio": "9/16",
-    "gallery": [],
-    "description": "Project work \"story lineup 2\" uploaded to portfolio."
-  },
-  {
-    "id": "work-1795363432624",
-    "title": "Album covers for Eliya Barashi",
-    "subtitle": "",
-    "category": "Motion & Screen Graphics",
-    "catTag": "motion",
-    "year": "",
-    "client": "",
-    "role": "",
-    "toolkit": "",
-    "asset": "",
-    "videoAsset": "",
-    "gallery": [],
-    "isVideo": false,
-    "aspectRatio": "3/4",
-    "description": ""
   }
 ]
